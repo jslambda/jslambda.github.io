@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resizable Textarea</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .search-form-container {
+            width: 80%;
+            /* Use 80% of the viewport width */
+            max-width: 600px;
+            /* Set a max width of 600px */
+            margin: 20px auto;
+            /* Add some margin at the top and center the container horizontally */
+        }
+
+        .search-form-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            /* Creates a gap between each element inside the form */
+        }
+
+        .search-form-container [type="text"],
+        .search-form-container textarea {
+            width: 100%;
+            /* Make them take full width of the container */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-form-container textarea {
+            height: 50px;
+            /* Base height */
+            resize: vertical;
+            /* Allow vertical resizing only */
+        }
+
+        /* Media query to handle the increasing size of the textarea */
+        @media screen and (min-width: 768px) {
+            .search-form-container textarea {
+                height: 100px;
+                /* Increase height for larger screens */
+            }
+        }
+
+        details {
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            padding: 0.5em 1em;
+            margin-bottom: 0.5em;
+        }
+
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Style the summary when details is open */
+        details[open] summary {
+            border-bottom: 1px solid #aaa;
+        }
+
+        /* Style the content inside details */
+        details p {
+            padding: 1em 0 0 0;
+            margin: 0;
+        }
+
+        .results-container {
+            display: flex;
+        }
+        ul {
+            margin: 0 20px;
+            padding: 0;
+            list-style-type: none;
+        }
+    </style>
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+    
+</head>
+
+
+<body>
+    <h2>Search term for text search: transpose</h2>
+    <h2>Search term for semantic search: How to transpose a table</h2>
+    <div id="results" class="results-container"><div><h3>Textual Results</h3><ul><details><summary>Intro to data structures — pandas 1.4.3 documentation(Transposing):  - To transpose, access the T attri <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/dsintro.html#transposing">Link</a></summary>To transpose, access the T attribute (also the transpose function),
+        similar to an ndarray:<pre># only show the first 5 rows
+        In [104]: df[:5].T
+        Out[104]: 
+                  0         1         2         3         4
+        A  0.271860 -1.087401  0.524988 -1.039268  0.844885
+        B -0.424972 -0.673690  0.404705 -0.370647  1.075770
+        C  0.567020  0.113648  0.577046 -1.157892 -0.109050
+        D  0.276232 -1.478427 -1.715002 -1.344312  1.643563
+        </pre>Elementwise NumPy ufuncs (log, exp, sqrt, …) and various other NumPy functions
+        can be used with no issues on Series and DataFrame, assuming the data within
+        are numeric:</details><details><summary>Essential basic functionality — pandas 1.4.3 documentation(iterrows): iterrows, DataFrame, print - For instance, a contrived way to <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/basics.html#iterrows">Link</a></summary>For instance, a contrived way to transpose the DataFrame would be:<pre>In [267]: df2 = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+        
+        In [268]: print(df2)
+           x  y
+        0  1  4
+        1  2  5
+        2  3  6
+        
+        In [269]: print(df2.T)
+           0  1  2
+        x  1  2  3
+        y  4  5  6
+        
+        In [270]: df2_t = pd.DataFrame({idx: values for idx, values in df2.iterrows()})
+        
+        In [271]: print(df2_t)
+           0  1  2
+        x  1  2  3
+        y  4  5  6
+        </pre>The itertuples() method will return an iterator
+        yielding a namedtuple for each row in the DataFrame. The first element
+        of the tuple will be the row’s corresponding index value, while the
+        remaining values are the row values.</details><details><summary>10 minutes to pandas — pandas 1.4.3 documentation():  - Transposing your data: <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/10min.htmlbasics.html#basics">Link</a></summary>Transposing your data:<pre>In [20]: df.T
+        Out[20]: 
+           2013-01-01  2013-01-02  2013-01-03  2013-01-04  2013-01-05  2013-01-06
+        A    0.469112    1.212112   -0.861849    0.721555   -0.424972   -0.673690
+        B   -0.282863   -0.173215   -2.104569   -0.706771    0.567020    0.113648
+        C   -1.509059    0.119209   -0.494929   -1.039575    0.276232   -1.478427
+        D   -1.135632   -1.044236    1.071804    0.271860   -1.087401    0.524988
+        </pre>Sorting by an axis:</details><details><summary>Essential basic functionality — pandas 1.4.3 documentation(object conversion): infer_objects, infer objects - Because the data was transposed  <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/basics.html#object-conversion">Link</a></summary>Because the data was transposed the original inference stored all columns as object, which
+        infer_objects will correct.<pre>In [388]: df.infer_objects().dtypes
+        Out[388]: 
+        0             int64
+        1            object
+        2    datetime64[ns]
+        dtype: object
+        </pre>The following functions are available for one dimensional object arrays or scalars to perform
+        hard conversion of objects to a specified type:</details><details><summary>Chart Visualization — pandas 1.4.3 documentation(Plotting tables): round, plot, tick top, subplots, tick_top - Also, you can pass a different D <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/visualization.html#plotting-tables">Link</a></summary>Also, you can pass a different DataFrame or Series to the
+        table keyword. The data will be drawn as displayed in print method
+        (not transposed automatically). If required, it should be transposed manually
+        as seen in the example below.<pre>In [182]: fig, ax = plt.subplots(1, 1, figsize=(7, 6.75))
+        
+        In [183]: ax.xaxis.tick_top()  # Display x-axis ticks on top.
+        
+        In [184]: df.plot(table=np.round(df.T, 2), ax=ax);
+        </pre>There also exists a helper function pandas.plotting.table, which creates a
+        table from DataFrame or Series, and adds it to an
+        matplotlib.Axes instance. This function can accept keywords which the
+        matplotlib table has.</details></ul></div><div><h3>Semantic Results</h3><ul><details><summary>Reshaping and pivot tables — pandas 1.4.3 documentation(With a MultiIndex): to string, to_string, print, pivot_table, pivot table - You can render a nice output of  <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/reshaping.htmlgroupby.html#groupby-specify">Link</a></summary>You can render a nice output of the table omitting the missing values by
+        calling to_string() if you wish:<pre>In [72]: table = pd.pivot_table(df, index=["A", "B"], columns=["C"])
+        
+        In [73]: print(table.to_string(na_rep=""))
+                        D                   E          
+        C             bar       foo       bar       foo
+        A     B                                        
+        one   A  1.120915 -0.514058  1.393057 -0.021605
+              B -0.338421  0.002759  0.684140 -0.551692
+              C -0.538846  0.699535 -0.988442  0.747859
+        three A -1.181568            0.961289          
+              B            0.433512           -1.064372
+              C  0.588783           -0.131830          
+        two   A            1.000985            0.064245
+              B  0.158248           -0.097147          
+              C            0.176180            0.436241
+        </pre>i.e. DataFrame.pivot_table().</details><details><summary>Group by: split-apply-combine — pandas 1.4.3 documentation(Aggregations with User-Defined Functions): ffill - For example: fillna, ffill, bfil <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/groupby.html#groupby-aggregate-udfs">Link</a></summary>For example: fillna, ffill, bfill, shift..<pre>In [131]: grouped.ffill()
+        Out[131]: 
+                    A         B         C
+        0    1.539708 -1.166480  0.533026
+        1    1.302092 -0.505754  0.533026
+        2   -0.371983  1.104803 -0.651520
+        3   -1.309622  1.118697 -1.161657
+        4   -1.924296  0.396437  0.812436
+        ..        ...       ...       ...
+        995 -0.093110  0.683847 -0.774753
+        996 -0.185043  1.438572 -0.774753
+        997 -0.394469 -0.642343  0.011374
+        998 -1.174126  1.857148 -0.774753
+        999  0.234564  0.517098  0.393534
+        
+        [1000 rows x 3 columns]
+        </pre>It is possible to use resample(), expanding() and
+        rolling() as methods on groupbys.</details><details><summary>Table Visualization — pandas 1.4.3 documentation(2. Use table styles):  - This is sub-optimal: <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/style.html#2.-Use-table-styles">Link</a></summary>This is sub-optimal:<pre>[40]:
+        </pre>This is better:</details><details><summary>Table Visualization — pandas 1.4.3 documentation(2. Use table styles):  - This is sub-optimal: <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/style.html#2.-Use-table-styles">Link</a></summary>This is sub-optimal:<pre>[40]:
+        </pre>This is better:</details><details><summary>10 minutes to pandas — pandas 1.4.3 documentation(Pivot tables): pivot table, pivot_table - We can produce pivot tables from <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/10min.htmlreshaping.html#reshaping-pivot">Link</a></summary>We can produce pivot tables from this data very easily:<pre>In [103]: pd.pivot_table(df, values="D", index=["A", "B"], columns=["C"])
+        Out[103]: 
+        C             bar       foo
+        A     B                    
+        one   A  2.395985 -1.202872
+              B  1.395433 -1.814470
+              C -0.392670 -0.055224
+        three A -0.595447       NaN
+              B       NaN  1.928123
+              C  0.166599       NaN
+        two   A       NaN  0.007207
+              B  1.552825       NaN
+              C       NaN  1.018601
+        </pre>pandas has simple, powerful, and efficient functionality for performing
+        resampling operations during frequency conversion (e.g., converting secondly
+        data into 5-minutely data). This is extremely common in, but not limited to,
+        financial applications. See the Time Series section.</details></ul></div></div>
+</body>
+
+</html>

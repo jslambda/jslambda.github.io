@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resizable Textarea</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .search-form-container {
+            width: 80%;
+            /* Use 80% of the viewport width */
+            max-width: 600px;
+            /* Set a max width of 600px */
+            margin: 20px auto;
+            /* Add some margin at the top and center the container horizontally */
+        }
+
+        .search-form-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            /* Creates a gap between each element inside the form */
+        }
+
+        .search-form-container [type="text"],
+        .search-form-container textarea {
+            width: 100%;
+            /* Make them take full width of the container */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-form-container textarea {
+            height: 50px;
+            /* Base height */
+            resize: vertical;
+            /* Allow vertical resizing only */
+        }
+
+        /* Media query to handle the increasing size of the textarea */
+        @media screen and (min-width: 768px) {
+            .search-form-container textarea {
+                height: 100px;
+                /* Increase height for larger screens */
+            }
+        }
+
+        details {
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            padding: 0.5em 1em;
+            margin-bottom: 0.5em;
+        }
+
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Style the summary when details is open */
+        details[open] summary {
+            border-bottom: 1px solid #aaa;
+        }
+
+        /* Style the content inside details */
+        details p {
+            padding: 1em 0 0 0;
+            margin: 0;
+        }
+
+        .results-container {
+            display: flex;
+        }
+        ul {
+            margin: 0 20px;
+            padding: 0;
+            list-style-type: none;
+        }
+    </style>
+    </style>
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+    
+</head>
+
+
+<body>
+    <h2>Search term: filter out rows</h2>
+    <div id="results1" class="results-container"><div><h3>Textual Results</h3><ul><details><summary>Group by: split-apply-combine — pandas 1.4.3 documentation(Window and resample operations): filter, arange, list, DataFrame, groupby, len - Another useful operation is filt <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/groupby.html#filtration">Link</a></summary>Another useful operation is filtering out elements that belong to groups
+        with only a couple members.<pre>In [141]: dff = pd.DataFrame({"A": np.arange(8), "B": list("aabbbbcc")})
+        
+        In [142]: dff.groupby("B").filter(lambda x: len(x) &gt; 2)
+        Out[142]: 
+           A  B
+        2  2  b
+        3  3  b
+        4  4  b
+        5  5  b
+        </pre>Alternatively, instead of dropping the offending groups, we can return a
+        like-indexed objects where the groups that do not pass the filter are filled
+        with NaNs.</details><details><summary>Essential basic functionality — pandas 1.4.3 documentation(Row or column-wise function application): apply - Another useful feature is the ab <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/basics.html#row-or-column-wise-function-application">Link</a></summary>Another useful feature is the ability to pass Series methods to carry out some
+        Series operation on each column or row:<pre>In [159]: tsdf
+        Out[159]: 
+                           A         B         C
+        2000-01-01 -0.158131 -0.232466  0.321604
+        2000-01-02 -1.810340 -3.105758  0.433834
+        2000-01-03 -1.209847 -1.156793 -0.136794
+        2000-01-04       NaN       NaN       NaN
+        2000-01-05       NaN       NaN       NaN
+        2000-01-06       NaN       NaN       NaN
+        2000-01-07       NaN       NaN       NaN
+        2000-01-08 -0.653602  0.178875  1.008298
+        2000-01-09  1.007996  0.462824  0.254472
+        2000-01-10  0.307473  0.600337  1.643950
+        
+        In [160]: tsdf.apply(pd.Series.interpolate)
+        Out[160]: 
+                           A         B         C
+        2000-01-01 -0.158131 -0.232466  0.321604
+        2000-01-02 -1.810340 -3.105758  0.433834
+        2000-01-03 -1.209847 -1.156793 -0.136794
+        2000-01-04 -1.098598 -0.889659  0.092225
+        2000-01-05 -0.987349 -0.622526  0.321243
+        2000-01-06 -0.876100 -0.355392  0.550262
+        2000-01-07 -0.764851 -0.088259  0.779280
+        2000-01-08 -0.653602  0.178875  1.008298
+        2000-01-09  1.007996  0.462824  0.254472
+        2000-01-10  0.307473  0.600337  1.643950
+        </pre>Finally, apply() takes an argument raw which is False by default, which
+        converts each row or column into a Series before applying the function. When
+        set to True, the passed function will instead receive an ndarray object, which
+        has positive performance implications if you do not need the indexing
+        functionality.</details><details><summary>Group by: split-apply-combine — pandas 1.4.3 documentation(Window and resample operations): len, filter, groupby - Alternatively, instead of droppi <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/groupby.html#filtration">Link</a></summary>Alternatively, instead of dropping the offending groups, we can return a
+        like-indexed objects where the groups that do not pass the filter are filled
+        with NaNs.<pre>In [143]: dff.groupby("B").filter(lambda x: len(x) &gt; 2, dropna=False)
+        Out[143]: 
+             A    B
+        0  NaN  NaN
+        1  NaN  NaN
+        2  2.0    b
+        3  3.0    b
+        4  4.0    b
+        5  5.0    b
+        6  NaN  NaN
+        7  NaN  NaN
+        </pre>For DataFrames with multiple columns, filters should explicitly specify a column as the filter criterion.</details><details><summary>10 minutes to pandas — pandas 1.4.3 documentation(Boolean indexing): isin, copy - Using the isin() method for filt <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/10min.html#boolean-indexing">Link</a></summary>Using the isin() method for filtering:<pre>In [41]: df2 = df.copy()
+        
+        In [42]: df2["E"] = ["one", "one", "two", "three", "four", "three"]
+        
+        In [43]: df2
+        Out[43]: 
+                           A         B         C         D      E
+        2013-01-01  0.469112 -0.282863 -1.509059 -1.135632    one
+        2013-01-02  1.212112 -0.173215  0.119209 -1.044236    one
+        2013-01-03 -0.861849 -2.104569 -0.494929  1.071804    two
+        2013-01-04  0.721555 -0.706771 -1.039575  0.271860  three
+        2013-01-05 -0.424972  0.567020  0.276232 -1.087401   four
+        2013-01-06 -0.673690  0.113648 -1.478427  0.524988  three
+        
+        In [44]: df2[df2["E"].isin(["two", "four"])]
+        Out[44]: 
+                           A         B         C         D     E
+        2013-01-03 -0.861849 -2.104569 -0.494929  1.071804   two
+        2013-01-05 -0.424972  0.567020  0.276232 -1.087401  four
+        </pre>Setting a new column automatically aligns the data
+        by the indexes:</details><details><summary>Group by: split-apply-combine — pandas 1.4.3 documentation(Window and resample operations): len, arange, groupby, filter - For DataFrames with multiple col <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/groupby.html#filtration">Link</a></summary>For DataFrames with multiple columns, filters should explicitly specify a column as the filter criterion.<pre>In [144]: dff["C"] = np.arange(8)
+        
+        In [145]: dff.groupby("B").filter(lambda x: len(x["C"]) &gt; 2)
+        Out[145]: 
+           A  B  C
+        2  2  b  2
+        3  3  b  3
+        4  4  b  4
+        5  5  b  5
+        </pre>Note</details></ul></div><div><h3>Semantic Results</h3><ul><details><summary>Indexing and selecting data — pandas 1.4.3 documentation(Reindexing):  - To return only the selected rows <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/indexing.html#the-where-method-and-masking">Link</a></summary>To return only the selected rows:<pre>In [185]: s[s &gt; 0]
+        Out[185]: 
+        3    1
+        2    2
+        1    3
+        0    4
+        dtype: int64
+        </pre>To return a Series of the same shape as the original:</details><details><summary>Table Visualization — pandas 1.4.3 documentation(Acting on the Index and Column Headers):  - This also provides the flexibili <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/style.html#Finer-Control-with-Slicing">Link</a></summary>This also provides the flexibility to sub select rows when used with the axis=1.<pre>[36]:
+        </pre>There is also scope to provide conditional filtering.</details><details><summary>Table Visualization — pandas 1.4.3 documentation(Acting on the Index and Column Headers):  - This also provides the flexibili <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/style.html#Finer-Control-with-Slicing">Link</a></summary>This also provides the flexibility to sub select rows when used with the axis=1.<pre>[36]:
+        </pre>There is also scope to provide conditional filtering.</details><details><summary>10 minutes to pandas — pandas 1.4.3 documentation(Getting):  - Selecting via [], which slices t <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/10min.html#getting">Link</a></summary>Selecting via [], which slices the rows:<pre>In [24]: df[0:3]
+        Out[24]: 
+                           A         B         C         D
+        2013-01-01  0.469112 -0.282863 -1.509059 -1.135632
+        2013-01-02  1.212112 -0.173215  0.119209 -1.044236
+        2013-01-03 -0.861849 -2.104569 -0.494929  1.071804
+        
+        In [25]: df["20130102":"20130104"]
+        Out[25]: 
+                           A         B         C         D
+        2013-01-02  1.212112 -0.173215  0.119209 -1.044236
+        2013-01-03 -0.861849 -2.104569 -0.494929  1.071804
+        2013-01-04  0.721555 -0.706771 -1.039575  0.271860
+        </pre>See more in Selection by Label.</details><details><summary>Scaling to large datasets — pandas 1.4.3 documentation(): read parquet, read_parquet - To load the columns we want, we  <a href="https://pandas.pydata.org/pandas-docs/version/1.4/user_guide/scale.html#load-less-data">Link</a></summary>To load the columns we want, we have two options.
+        Option 1 loads in all the data and then filters to what we need.<pre>In [3]: columns = ["id_0", "name_0", "x_0", "y_0"]
+        
+        In [4]: pd.read_parquet("timeseries_wide.parquet")[columns]
+        Out[4]: 
+                             id_0    name_0       x_0       y_0
+        timestamp                                              
+        2000-01-01 00:00:00  1015   Michael -0.399453  0.095427
+        2000-01-01 00:01:00   969  Patricia  0.650773 -0.874275
+        2000-01-01 00:02:00  1016    Victor -0.721465 -0.584710
+        2000-01-01 00:03:00   939     Alice -0.746004 -0.908008
+        2000-01-01 00:04:00  1017       Dan  0.919451 -0.803504
+        ...                   ...       ...       ...       ...
+        2000-12-30 23:56:00   999       Tim  0.162578  0.512817
+        2000-12-30 23:57:00   970     Laura -0.433586 -0.600289
+        2000-12-30 23:58:00  1065     Edith  0.232211 -0.454540
+        2000-12-30 23:59:00  1019    Ingrid  0.322208 -0.615974
+        2000-12-31 00:00:00   937    Ursula -0.906523  0.943178
+        
+        [525601 rows x 4 columns]
+        </pre>Option 2 only loads the columns we request.</details></ul></div></div>
+</body>
+
+</html>
