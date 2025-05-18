@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Tree Sitter Document Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .Search {
+      margin-bottom: 20px;
+    }
+
+    .Search input {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .Search button {
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .results {
+      background: #fff;
+      padding: 15px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-item {
+      border-bottom: 1px solid #ddd;
+      padding: 15px 0;
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-header {
+      margin-bottom: 8px;
+    }
+
+    .result-title {
+      display: flex;
+      align-items: baseline;
+      margin: 0;
+    }
+
+    .result-title .title-link {
+      font-size: 20px;
+      color: #222;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .result-title .title-link:hover {
+      text-decoration: underline;
+    }
+
+    .result-title .result-path {
+      font-size: 14px;
+      color: #666;
+      margin-left: 8px;
+      font-style: italic;
+    }
+
+    .result-link {
+      margin-left: auto;
+      font-size: 14px;
+      color: #0066cc;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .result-link:hover {
+      text-decoration: underline;
+    }
+
+    .result-snippet p {
+      margin: 8px 0;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .result-code h4 {
+      margin: 10px 0 5px;
+      font-size: 16px;
+    }
+
+    .code-lines {
+      list-style: none;
+      padding-left: 0;
+      background: #f0f0f0;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+
+    .code-lines li {
+      font-family: monospace;
+      padding: 4px 8px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .code-lines li:last-child {
+      border-bottom: none;
+    }
+
+    .no-results {
+      text-align: center;
+      color: #555;
+      font-style: italic;
+      padding: 20px 0;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="Search">
+    <input type="search" placeholder="Type your search..." />
+    <button id="searchBtn" type="button">Search</button>
+  </div>
+
+  <div class="results">
+    <ul id="resultsList"></ul>
+  </div>
+
+  <!-- Include MiniSearch -->
+  <script src="https://cdn.jsdelivr.net/npm/minisearch@7.1.1/dist/umd/index.min.js"></script>
+
+  <script>
+    "use strict";
+
+    // Grab references to the input, button, and results container
+    const $searchInput = document.querySelector('.Search input');
+    const $searchButton = document.getElementById('searchBtn');
+    const $resultsList = document.getElementById('resultsList');
+
+    const FLD_HEADER = 'header';
+    const FLD_TEXT_BLOCKS = 'text_blocks';
+    const FLD_CODE_BLOCKS = 'code_blocks';
+    const FLD_FILE_PATH = "file_path";
+
+    const NEW_LINE_SIGN = 'NEWLINE'
+    // Initialize MiniSearch
+    const miniSearch = new MiniSearch({
+      fields: [FLD_HEADER, FLD_TEXT_BLOCKS], // fields to index for full-text search
+      storeFields: [FLD_HEADER, FLD_TEXT_BLOCKS, FLD_CODE_BLOCKS, FLD_FILE_PATH], // fields to return with search results
+
+      // Custom extractor: if the field’s value is an array, join it by spaces
+      extractField: (document, fieldName) => {
+        const value = document[fieldName]
+        return Array.isArray(value)
+          ? value.join(NEW_LINE_SIGN)
+          : value
+      }
+    });
+
+
+    // Fetch data from JSON and index it
+    fetch('tree-sitter.json')
+      .then(response => response.json())
+      .then(data => {
+        // Give each item a unique ID and add them to the index
+        const withIds = data.map(item => {
+          const uuid = crypto.randomUUID();
+          const result = {
+            id: uuid,
+            ...item
+          };
+          return result;
+        });
+        miniSearch.addAll(withIds);
+      })
+      .catch(error => {
+        console.error('Error fetching tree-sitter.json:', error);
+      });
+
+    // Function to perform the search and display results
+    function performSearch() {
+      const query = $searchInput.value.trim();
+
+      // If input is empty, clear the results
+      if (!query) {
+        $resultsList.innerHTML = '';
+        return;
+      }
+
+      // Get search results
+      const results = miniSearch.search(query);
+      // Build HTML to display results
+      if (results.length) {
+        $resultsList.innerHTML = results.map(result => {
+          const headerText = result[FLD_HEADER];
+          const headerLink = result[FLD_FILE_PATH]
+            .replace('tree-sitter/docs/src/', 'https://github.com/tree-sitter/tree-sitter/tree/master/docs/src/')
+            + `#${headerText.toLowerCase().replace(/\s+/g, '-')}`;
+
+          // Shorten file path for context
+          const shortPath = result[FLD_FILE_PATH]
+            .replace('tree-sitter/docs/src/', '')
+            .replace(/\.md$/, '');
+
+          const snippet = result[FLD_TEXT_BLOCKS]
+            .replace(/NEWPARAGRAPH/g, '<br />')
+            .replace(/NEWLINE/g, '<br />')
+            .substring(0, 256) + '...';
+
+          const codeLines = result[FLD_CODE_BLOCKS]
+            .split(NEW_LINE_SIGN)
+            .filter(line => line.length > 32)
+            .map(line => `<li class="code-line">${line}</li>`)
+            .join('');
+
+          return `
+        <li class="result-item">
+          <header class="result-header">
+            <h3 class="result-title">
+              <a href="${headerLink}" class="title-link" target="_blank" rel="noopener noreferrer">${headerText}</a>
+              <span class="result-path">${shortPath}</span>
+              <a href="${headerLink}" class="result-link" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+            </h3>
+          </header>
+          <section class="result-snippet"><p>${snippet}</p></section>
+          ${codeLines ? `<section class="result-code">
+            <h4>Code Snippets:</h4>
+            <ul class="code-lines">${codeLines}</ul>
+          </section>` : ''}
+        </li>
+      `;
+        }).join('');
+      } else {
+        $resultsList.innerHTML = '<li class="no-results">No results found. Try a different query.</li>';
+      }
+
+    }
+
+    // Search on button click
+    $searchButton.addEventListener('click', performSearch);
+    $searchInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        performSearch();
+      }
+    });
+  </script>
+
+  <footer style="margin-top: 40px; text-align: center; font-size: 14px; color: #777;">
+    <p>
+      This search tool uses data from
+      <a href="https://github.com/tree-sitter/tree-sitter" target="_blank" rel="noopener noreferrer">
+        tree-sitter on GitHub
+      </a>.
+    </p>
+  </footer>
+
+</body>
+
+</html>
