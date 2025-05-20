@@ -70,6 +70,24 @@
             border-radius: 0.5rem;
         }
 
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        a[rel~="external"]::after {
+            content: "↗";
+            margin-left: 0.25em;
+            font-size: 0.8em;
+        }
+
+
         @media (prefers-color-scheme: dark) {
             body {
                 background: #111827;
@@ -102,8 +120,11 @@
             <a class="launch" href="./tldrpages.html" target="_blank" rel="noopener">Launch TLDR Search</a>
             <ul>
                 <li>
-                    <strong>More extensive indexing than the <a href="https://tldr.sh/">official
-                            tldr-search</a>.</strong> Indexes command names,
+                    More extensive indexing than the <a href="https://tldr.sh/" target="_blank"
+                        rel="external noopener noreferrer"
+                        aria-label="Open the official TLDR search site (opens in a new tab)">
+                        official tldr-search<span class="visually-hidden"> (opens in a new tab)</span>
+                    </a>. Indexes command names,
                     and descriptions for superior recall.
                 </li>
 
@@ -115,8 +136,11 @@
             <a class="launch" href="./tree.html" target="_blank" rel="noopener">Launch Tree‑sitter Search</a>
             <ul>
                 <li>
-                    Indexes the entire official Tree‑sitter documentation from <a
-                        href="https://github.com/tree-sitter/tree-sitter/tree/master/docs/src">its github repository</a>
+                    Indexes the entire official Tree‑sitter documentation from <a target="_blank"
+                        rel="external noopener noreferrer"
+                        aria-label="Open tree-sitter documents in github (opens in a new tab)"
+                        href="https://github.com/tree-sitter/tree-sitter/tree/master/docs/src">
+                        its github repository<span class="visually-hidden"> (opens in a new tab)</span></a>
                 </li>
             </ul>
         </article>
