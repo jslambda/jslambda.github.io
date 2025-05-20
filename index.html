@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Featured Projects</title>
+    <style>
+        :root {
+            --max-width: 48rem;
+            --primary-color: #1a202c;
+            --accent-color: #2563eb;
+            --bg-light: #f9fafb;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-light);
+            color: var(--primary-color);
+        }
+
+        #featured-projects {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 3rem 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .project {
+            background: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            padding: 2rem;
+        }
+
+        .project h3 {
+            margin-top: 0;
+            font-size: 1.35rem;
+        }
+
+        .launch {
+            display: inline-block;
+            margin: 0.75rem 0 1.25rem;
+            padding: 0.5rem 1rem;
+            background: var(--accent-color);
+            color: #fff;
+            border-radius: 0.4rem;
+            text-decoration: none;
+        }
+
+        .project ul {
+            padding-left: 1.25rem;
+        }
+
+        .project li {
+            margin-bottom: 0.5rem;
+        }
+
+        .callout {
+            margin-top: 3rem;
+            background: #e7f1ff;
+            border-left: 4px solid var(--accent-color);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #111827;
+                color: #e2e8f0;
+            }
+
+            .project {
+                background: #1f2937;
+            }
+
+            .callout {
+                background: #1e40af29;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <section id="featured-projects">
+        <h2>Featured Programs</h2>
+
+        <p>
+            Below are two lightweight, entirely client‑side search apps. Each app uses relatively a large Markdown
+            corpus. The applications run entirely in‑browser—so after the first visit they work even with Wi‑Fi switched
+            off.
+        </p>
+
+        <article class="project">
+            <h3>TLDR Search — find the exact example, fast</h3>
+            <a class="launch" href="tldrpages.html" target="_blank" rel="noopener">Launch TLDR Search</a>
+            <ul>
+                <li>
+                    <strong>More extensive indexing than the <a href="https://tldr.sh/">official
+                            tldr-search</a>.</strong> Indexes command names,
+                    and descriptions for superior recall.
+                </li>
+
+            </ul>
+        </article>
+
+        <article class="project">
+            <h3>Tree‑sitter Docs Search</h3>
+            <a class="launch" href="tree.html" target="_blank" rel="noopener">Launch Tree‑sitter Search</a>
+            <ul>
+                <li>
+                    Indexes the entire official Tree‑sitter documentation from <a
+                        href="https://github.com/tree-sitter/tree-sitter/tree/master/docs/src">its github repository</a>
+                </li>
+            </ul>
+        </article>
+
+        <div class="callout">
+            <p>
+                <strong>Why these apps matter:</strong> They showcase fast client‑side search, with zero
+                backend. Once the data loads you can search without a
+                connection.
+            </p>
+        </div>
+    </section>
+</body>
+
+</html>
