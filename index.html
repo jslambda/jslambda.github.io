@@ -26,6 +26,49 @@
             padding: 3rem 1rem;
         }
 
+        /* ----- intro / hero ----- */
+        #intro {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1rem 2.5rem;
+            text-align: center;
+        }
+
+        #intro h1 {
+            font-size: 2.25rem;
+            /* 36 px */
+            margin: 0 0 0.75rem;
+            line-height: 1.2;
+        }
+
+        #intro p.lead {
+            font-size: 1.25rem;
+            /* 20 px */
+            margin: 0 0 1.5rem;
+        }
+
+        #intro .cta {
+            display: inline-block;
+            padding: 0.65rem 1.4rem;
+            background: var(--accent-color);
+            color: #fff;
+            border-radius: 0.5rem;
+            text-decoration: none;
+        }
+
+        #intro .cta:hover {
+            background: #1e4fd9;
+            /* slightly darker accent */
+        }
+
+        /* dark-mode tweaks */
+        @media (prefers-color-scheme: dark) {
+            #intro .cta:hover {
+                background: #345ef0;
+            }
+        }
+
+
         h2 {
             font-size: 2rem;
             margin-bottom: 1.5rem;
@@ -106,8 +149,16 @@
 </head>
 
 <body>
+    <header id="intro">
+        <h1>Hi, I’m Hamid&nbsp;👋</h1>
+        <p class="lead">
+            I’m passionate about making documents’ search <em>instant</em>—and 100&nbsp;% server-free!
+        </p>
+        <a class="cta" href="#featured-projects">See the demos ↓</a>
+    </header>
+
     <section id="featured-projects">
-        <h2>Featured Programs</h2>
+        <h2>Featured Search Applications</h2>
 
         <p>
             Below are two lightweight, entirely client‑side search apps. Each app uses relatively a large Markdown
