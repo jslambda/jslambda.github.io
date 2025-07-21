@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Search TLDR Pages</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .Search {
+      margin-bottom: 20px;
+    }
+
+    .Search input {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .Search button {
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .results {
+      background: #fff;
+      padding: 15px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-header h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .result-category {
+      font-size: 14px;
+      color: #888;
+      margin-left: 10px;
+    }
+
+    .result-snippet p {
+      margin: 8px 0;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .result-code h4 {
+      margin: 10px 0 5px;
+      font-size: 16px;
+    }
+
+    .code-lines {
+      list-style: none;
+      padding-left: 0;
+      background: #f0f0f0;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+
+    .code-lines li {
+      font-family: monospace;
+      padding: 4px 8px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .code-lines li:last-child {
+      border-bottom: none;
+    }
+
+    .no-results {
+      text-align: center;
+      color: #555;
+      font-style: italic;
+      padding: 10px;
+    }
+  </style>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body>
+  <main>
+    <div class="Search">
+      <input type="search" placeholder="Type your search..." disabled />
+      <button id="searchBtn" type="button" disabled>Loading...</button>
+    </div>
+
+    <div class="results">
+      <ul id="resultsList"></ul>
+    </div>
+  </main>
+
+  <script type="module">
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1';
+    import { VectorSearch } from './vector_search.js'
+
+
+    // —————————————————————————————————————————————
+    //  In-browser embedder with promise-based caching
+    let _embedderPromise = null;
+    function getEmbedder(model = "Xenova/all-MiniLM-L6-v2") {
+      if (!_embedderPromise) {
+        // pipeline() returns a Promise immediately, so we cache it right away
+        _embedderPromise = pipeline("feature-extraction", model /*, { device: "webgpu" } */);
+      }
+      return _embedderPromise;
+    }
+
+    /**
+     * Embed a single string into a fixed-size, normalized Float32Array.
+     *
+     * @param {string} text
+     * @param {string} [model]
+     * @returns {Promise<Float32Array>}
+     */
+    export async function embedText(text, model) {
+      if (typeof text !== "string" || text.length === 0) {
+        throw new TypeError("embedText: text must be a nonempty string");
+      }
+      const extractor = await getEmbedder(model);
+      const tensor = await extractor(text, { pooling: "mean", normalize: true });
+      return tensor.data;
+    }
+
+
+    const index = new VectorSearch();
+
+    // —————————————————————————————————————————————
+    //  App entry point
+    (async () => {
+      try {
+
+        // Load precomputed vectors
+        const resp = await fetch("tldr-vectorized.json");
+        if (!resp.ok) {
+          throw new Error(`Failed to fetch vectors: ${resp.status} ${resp.statusText}`);
+        }
+        const docs = await resp.json();
+        index.loadDocs(docs);
+        // Now that docs are ready, enable the UI
+        $searchInput.disabled = false;
+        $searchButton.disabled = false;
+        $searchButton.textContent = 'Search';
+
+      } catch (err) {
+        console.error("Error initializing vector search app:", err);
+      }
+    })();
+
+
+
+    // Grab references to the input, button, and results container
+    const $searchInput = document.querySelector('.Search input');
+    const $searchButton = document.getElementById('searchBtn');
+    const $resultsList = document.getElementById('resultsList');
+
+
+    // Function to perform the search and display results
+    async function performSearch() {
+      const query = $searchInput.value.trim();
+
+      // If input is empty, clear the results
+      if (!query) {
+        $resultsList.innerHTML = '';
+        return;
+      }
+
+      // Get search results
+      // const results = miniSearch.search(query);
+      const res = index.textSearch(query, 'header');
+      let results;
+      if (res) {
+        results = [res];
+      } else {
+        const queryVector = await embedText(query);
+        results = index.search(queryVector, 100);
+
+      }
+
+      // Build HTML to display results
+      if (results.length > 0) {
+        const html = results.map(result => {
+          const codeLines = result.code_blocks.filter(line => line.length > 10)
+            .map(line => `<li class="code-line">${line}</li>`)
+            .join('');
+          return `
+          <li class="result-item">
+            <header class="result-header">
+              <h3 class="result-title">${result.header} <span class="result-category">[${result.category}]</span></h3>
+            </header>
+            <section class="result-snippet">
+              <p>${result.text_block.replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
+            </section>
+            ${codeLines ? `<section class="result-code">
+              <h4>Code Snippets:</h4>
+              <ul class="code-lines">${codeLines}</ul>
+            </section>` : ''}
+          </li>
+        `;
+        }).join('');
+        $resultsList.innerHTML = html;
+      } else {
+        // If no results found
+        $resultsList.innerHTML = '<li class="no-results">No results found. Please try a different search query.</li>';
+      }
+    }
+
+    // Search on button click
+    $searchButton.addEventListener('click', performSearch);
+    $searchInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        performSearch();
+      }
+    });
+  </script>
+  <footer style="margin-top: 40px; text-align: center; font-size: 14px; color: #777;">
+    <p>
+      This search tool uses data from
+      <a href="https://github.com/tldr-pages" target="_blank" rel="noopener noreferrer">
+        tldr-pages on GitHub
+      </a>.
+    </p>
+  </footer>
+
+</body>
+
+</html>
