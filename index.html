@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <title>Featured Client side Search Applications</title>
@@ -90,7 +91,7 @@
             text-decoration: none;
         }
 
-        /* ✅ NEW: flex container for multiple launch links */
+        /* flex container for multiple launch links */
         .launch-links {
             display: flex;
             gap: 1rem;
@@ -144,8 +145,20 @@
                 background: #1e40af29;
             }
         }
+
+        .badge {
+            background: #fff;
+            color: var(--accent-color);
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            margin-left: 0.5rem;
+            border-radius: 999px;
+            font-weight: bold;
+            border: 1px solid var(--accent-color);
+        }
     </style>
 </head>
+
 <body>
     <header id="intro">
         <h1>Hi, I’m Hamid&nbsp;👋</h1>
@@ -167,8 +180,9 @@
         <article class="project">
             <h3>TLDR Search — find the exact example, fast</h3>
             <div class="launch-links">
+                <a class="launch" href="/tldr-vsearch/" target="_blank" rel="noopener">Launch TLDR Search <span
+                        class="badge">New version</span></a>
                 <a class="launch" href="/tldr-search/" target="_blank" rel="noopener">Launch TLDR Search</a>
-                <a class="launch" href="/tldr-vsearch/" target="_blank" rel="noopener">Vector search</a>
             </div>
             <ul>
                 <li>
@@ -205,4 +219,5 @@
         </div>
     </section>
 </body>
+
 </html>
