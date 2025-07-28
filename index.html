@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <title>Featured Client side Search Applications</title>
@@ -26,7 +25,6 @@
             padding: 3rem 1rem;
         }
 
-        /* ----- intro / hero ----- */
         #intro {
             max-width: var(--max-width);
             margin: 0 auto;
@@ -36,14 +34,12 @@
 
         #intro h1 {
             font-size: 2.25rem;
-            /* 36 px */
             margin: 0 0 0.75rem;
             line-height: 1.2;
         }
 
         #intro p.lead {
             font-size: 1.25rem;
-            /* 20 px */
             margin: 0 0 1.5rem;
         }
 
@@ -58,16 +54,13 @@
 
         #intro .cta:hover {
             background: #1e4fd9;
-            /* slightly darker accent */
         }
 
-        /* dark-mode tweaks */
         @media (prefers-color-scheme: dark) {
             #intro .cta:hover {
                 background: #345ef0;
             }
         }
-
 
         h2 {
             font-size: 2rem;
@@ -95,6 +88,13 @@
             color: #fff;
             border-radius: 0.4rem;
             text-decoration: none;
+        }
+
+        /* ✅ NEW: flex container for multiple launch links */
+        .launch-links {
+            display: flex;
+            gap: 1rem;
+            margin: 0.75rem 0 1.25rem;
         }
 
         .project ul {
@@ -130,7 +130,6 @@
             font-size: 0.8em;
         }
 
-
         @media (prefers-color-scheme: dark) {
             body {
                 background: #111827;
@@ -147,7 +146,6 @@
         }
     </style>
 </head>
-
 <body>
     <header id="intro">
         <h1>Hi, I’m Hamid&nbsp;👋</h1>
@@ -168,7 +166,10 @@
 
         <article class="project">
             <h3>TLDR Search — find the exact example, fast</h3>
-            <a class="launch" href="/tldr-search/" target="_blank" rel="noopener">Launch TLDR Search</a>
+            <div class="launch-links">
+                <a class="launch" href="/tldr-search/" target="_blank" rel="noopener">Launch TLDR Search</a>
+                <a class="launch" href="/tldr-vsearch/" target="_blank" rel="noopener">Vector search</a>
+            </div>
             <ul>
                 <li>
                     More extensive indexing than the <a href="https://tldr.sh/" target="_blank"
@@ -178,7 +179,6 @@
                     </a>. Indexes command names,
                     and descriptions for superior recall.
                 </li>
-
             </ul>
         </article>
 
@@ -205,5 +205,4 @@
         </div>
     </section>
 </body>
-
 </html>
