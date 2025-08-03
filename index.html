@@ -147,14 +147,40 @@
         }
 
         .badge {
-            background: #fff;
-            color: var(--accent-color);
-            font-size: 0.65rem;
-            padding: 0.15rem 0.4rem;
-            margin-left: 0.5rem;
-            border-radius: 999px;
-            font-weight: bold;
-            border: 1px solid var(--accent-color);
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1;
+            padding: 0.25em 0.6em;
+            border-radius: 0.25rem;
+            white-space: nowrap;
+        }
+
+        .badge--new {
+            background: linear-gradient(135deg, #ff7a18, #af002d);
+            color: #fff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 0 6px rgba(255, 122, 24, 0.5);
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .badge__icon {
+            width: 1.2em;
+            height: 1.2em;
+            margin-right: 0.3em;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 2px rgba(255, 122, 24, 0.6), 0 0 8px rgba(255, 122, 24, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 4px rgba(255, 122, 24, 0.8), 0 0 12px rgba(255, 122, 24, 0.6);
+            }
         }
     </style>
 </head>
@@ -180,8 +206,25 @@
         <article class="project">
             <h3>TLDR Search — find the exact example, fast</h3>
             <div class="launch-links">
-                <a class="launch" href="/tldr-vsearch/" target="_blank" rel="noopener">Launch TLDR Search <span
-                        class="badge">New version</span></a>
+                <a class="launch" href="/tldr-vsearch/" target="_blank" rel="noopener">Launch TLDR Search
+
+                    <span class="badge badge--new">
+                        <svg class="badge__icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <!-- 4 nodes -->
+                            <circle cx="6" cy="6" r="2" fill="currentColor" />
+                            <circle cx="18" cy="6" r="2" fill="currentColor" />
+                            <circle cx="6" cy="18" r="2" fill="currentColor" />
+                            <circle cx="18" cy="18" r="2" fill="currentColor" />
+                            <!-- connecting lines -->
+                            <line x1="6" y1="6" x2="18" y2="6" stroke="currentColor" stroke-width="1.5" />
+                            <line x1="6" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="1.5" />
+                            <line x1="18" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" />
+                            <line x1="6" y1="18" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" />
+                            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" />
+                        </svg> with semantic search
+                    </span>
+                </a>
                 <a class="launch" href="/tldr-search/" target="_blank" rel="noopener">Launch TLDR Search</a>
             </div>
             <ul>
