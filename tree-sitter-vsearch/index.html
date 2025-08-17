@@ -228,6 +228,7 @@
       // Build HTML to display results
       if (results.length) {
         $resultsList.innerHTML = results.map(result => {
+          console.log(result);
           const headerText = result[FLD_HEADER];
           const headerLink = result[FLD_FILE_PATH]
             .replace('tree-sitter/docs/src/', 'https://github.com/tree-sitter/tree-sitter/tree/master/docs/src/')
