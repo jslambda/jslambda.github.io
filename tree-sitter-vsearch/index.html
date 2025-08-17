@@ -223,7 +223,7 @@
       // Get search results
       // const results = miniSearch.search(query);
       const queryVector = await embedText(query);
-      results = index.search(queryVector, 100);
+      const results = index.search(queryVector, 100);
 
       // Build HTML to display results
       if (results.length) {
