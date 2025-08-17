@@ -238,10 +238,11 @@
             .replace('tree-sitter/docs/src/', '')
             .replace(/\.md$/, '');
 
-          const snippet = result[FLD_TEXT_BLOCKS]
-            .replace(/NEWPARAGRAPH/g, '<br />')
-            .replace(/NEWLINE/g, '<br />')
-            .substring(0, 256) + '...';
+          // const snippet = result[FLD_TEXT_BLOCKS]
+          //   .replace(/NEWPARAGRAPH/g, '<br />')
+          //   .replace(/NEWLINE/g, '<br />')
+          //   .substring(0, 256) + '...';
+          const snippet = '';
 
           const codeLines = result[FLD_CODE_BLOCKS]
             .split(NEW_LINE_SIGN)
