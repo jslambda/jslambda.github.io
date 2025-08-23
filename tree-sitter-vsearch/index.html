@@ -133,7 +133,7 @@
 
   <div class="Search">
     <input type="search" placeholder="Type your search..." />
-    <button id="searchBtn" type="button">Search</button>
+    <button id="searchBtn" type="button" disabled>Loading</button>
   </div>
 
   <div class="results">
@@ -210,6 +210,13 @@
 
     const NEW_LINE_SIGN = 'NEWLINE'
 
+    function normalizeToString(terms) {
+      if (Array.isArray(terms)) {
+        return terms.join(' ');
+      }
+      return terms;
+    }
+
     // Function to perform the search and display results
     async function performSearch() {
       const query = $searchInput.value.trim();
@@ -228,24 +235,24 @@
       // Build HTML to display results
       if (results.length) {
         $resultsList.innerHTML = results.map(result => {
-          console.log(result);
-          const headerText = result[FLD_HEADER];
-          const headerLink = result[FLD_FILE_PATH]
+          console.log('---- ', result);
+          const headerText = normalizeToString(result[FLD_HEADER]);
+          const headerLink = normalizeToString(result[FLD_FILE_PATH])
             .replace('tree-sitter/docs/src/', 'https://github.com/tree-sitter/tree-sitter/tree/master/docs/src/')
             + `#${headerText.toLowerCase().replace(/\s+/g, '-')}`;
 
           // Shorten file path for context
-          const shortPath = result[FLD_FILE_PATH]
+          const shortPath = normalizeToString(result[FLD_FILE_PATH])
             .replace('tree-sitter/docs/src/', '')
             .replace(/\.md$/, '');
 
-          // const snippet = result[FLD_TEXT_BLOCKS]
-          //   .replace(/NEWPARAGRAPH/g, '<br />')
-          //   .replace(/NEWLINE/g, '<br />')
-          //   .substring(0, 256) + '...';
-          const snippet = '';
+          const snippet = normalizeToString(result[FLD_TEXT_BLOCKS])
+            .replace(/NEWPARAGRAPH/g, '<br />')
+            .replace(/NEWLINE/g, '<br />')
+            .substring(0, 256) + '...';
+          // const snippet = '';
 
-          const codeLines = result[FLD_CODE_BLOCKS]
+          const codeLines = normalizeToString(result[FLD_CODE_BLOCKS])
             .split(NEW_LINE_SIGN)
             .filter(line => line.length > 32)
             .map(line => `<li class="code-line">${line}</li>`)
