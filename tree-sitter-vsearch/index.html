@@ -235,7 +235,6 @@
       // Build HTML to display results
       if (results.length) {
         $resultsList.innerHTML = results.map(result => {
-          console.log('---- ', result);
           const headerText = normalizeToString(result[FLD_HEADER]);
           const headerLink = normalizeToString(result[FLD_FILE_PATH])
             .replace('tree-sitter/docs/src/', 'https://github.com/tree-sitter/tree-sitter/tree/master/docs/src/')
@@ -250,7 +249,6 @@
             .replace(/NEWPARAGRAPH/g, '<br />')
             .replace(/NEWLINE/g, '<br />')
             .substring(0, 256) + '...';
-          // const snippet = '';
 
           const codeLines = normalizeToString(result[FLD_CODE_BLOCKS])
             .split(NEW_LINE_SIGN)
