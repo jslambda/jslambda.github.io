@@ -1,0 +1,1672 @@
+[
+  {
+    "file_path": "ripgrep/crates/searcher/README.md",
+    "header": "grep-searcher",
+    "text_blocks": [
+      "A high level library for executing fast line oriented searches. This handles\nthings like reporting contextual lines, counting lines, inverting a search,\ndetecting binary data, automatic UTF-16 transcoding and deciding whether or not\nto use memory maps.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/searcher/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep-searcher",
+      "NOTE: You probably don't want to use this crate directly. Instead, you\nshould prefer the facade defined in the\ngrep\ncrate."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/searcher/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep-searcher = \"0.1\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/core/README.md",
+    "header": "ripgrep core",
+    "text_blocks": [
+      "This is the core ripgrep crate. In particular, main.rs is where the main\nfunction lives.",
+      "Most of ripgrep core consists of two things:",
+      "The definition of the CLI interface, including docs for every flag.Glue code that brings the grep-matcher, grep-regex, grep-searcher and\ngrep-printer crates together to actually execute the search.",
+      "Currently, there are no plans to make ripgrep core available as an independent\nlibrary. However, much of the heavy lifting of ripgrep is done via its\nconstituent crates, which can be reused independent of ripgrep. Unfortunately,\nthere is no guide or tutorial to teach folks how to do this yet."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "globset",
+    "text_blocks": [
+      "Cross platform single glob and glob set matching. Glob set matching is the\nprocess of matching one or more glob patterns against a single candidate path\nsimultaneously, and returning all of the globs that matched.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/globset"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\nglobset = \"0.4\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Features",
+    "text_blocks": [
+      "serde1: Enables implementing Serde traits on the Glob type."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Example: one glob",
+    "text_blocks": [
+      "This example shows how to match a single glob against a single file path."
+    ],
+    "code_blocks": [
+      "use globset::Glob;\n\nlet glob = Glob::new(\"*.rs\")?.compile_matcher();\n\nassert!(glob.is_match(\"foo.rs\"));\nassert!(glob.is_match(\"foo/bar.rs\"));\nassert!(!glob.is_match(\"Cargo.toml\"));"
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Example: configuring a glob matcher",
+    "text_blocks": [
+      "This example shows how to use a GlobBuilder to configure aspects of match\nsemantics. In this example, we prevent wildcards from matching path separators."
+    ],
+    "code_blocks": [
+      "use globset::GlobBuilder;\n\nlet glob = GlobBuilder::new(\"*.rs\")\n    .literal_separator(true).build()?.compile_matcher();\n\nassert!(glob.is_match(\"foo.rs\"));\nassert!(!glob.is_match(\"foo/bar.rs\")); // no longer matches\nassert!(!glob.is_match(\"Cargo.toml\"));"
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Example: match multiple globs at once",
+    "text_blocks": [
+      "This example shows how to match multiple glob patterns at once."
+    ],
+    "code_blocks": [
+      "use globset::{Glob, GlobSetBuilder};\n\nlet mut builder = GlobSetBuilder::new();\n// A GlobBuilder can be used to configure each glob's match semantics\n// independently.\nbuilder.add(Glob::new(\"*.rs\")?);\nbuilder.add(Glob::new(\"src/lib.rs\")?);\nbuilder.add(Glob::new(\"src/**/foo.rs\")?);\nlet set = builder.build()?;\n\nassert_eq!(set.matches(\"src/bar/baz/foo.rs\"), vec![0, 2]);"
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Performance",
+    "text_blocks": [
+      "This crate implements globs by converting them to regular expressions, and\nexecuting them with the\nregex\ncrate.",
+      "For single glob matching, performance of this crate should be roughly on par\nwith the performance of the\nglob\ncrate. (*_regex correspond to benchmarks for this library while *_glob\ncorrespond to benchmarks for the glob library.)\nOptimizations in the regex crate may propel this library past glob,\nparticularly when matching longer paths.",
+      "The primary performance advantage of this crate is when matching multiple\nglobs against a single path. With the glob crate, one must match each glob\nsynchronously, one after the other. In this crate, many can be matched\nsimultaneously. For example:"
+    ],
+    "code_blocks": [
+      "test ext_glob             ... bench:         425 ns/iter (+/- 21)\ntest ext_regex            ... bench:         175 ns/iter (+/- 10)\ntest long_glob            ... bench:         182 ns/iter (+/- 11)\ntest long_regex           ... bench:         173 ns/iter (+/- 10)\ntest short_glob           ... bench:          69 ns/iter (+/- 4)\ntest short_regex          ... bench:          83 ns/iter (+/- 2)",
+      "test many_short_glob      ... bench:       1,063 ns/iter (+/- 47)\ntest many_short_regex_set ... bench:         186 ns/iter (+/- 11)"
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/globset/README.md",
+    "header": "Comparison with the glob crate",
+    "text_blocks": [
+      "Supports alternate \"or\" globs, e.g., *.{foo,bar}.Can match non-UTF-8 file paths correctly.Supports matching multiple globs at once.Doesn't provide a recursive directory iterator of matching file paths,\nalthough I believe this crate should grow one eventually.Supports case insensitive and require-literal-separator match options, but\ndoesn't support the require-literal-leading-dot option."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/ignore/README.md",
+    "header": "ignore",
+    "text_blocks": [
+      "The ignore crate provides a fast recursive directory iterator that respects\nvarious filters such as globs, file types and .gitignore files. This crate\nalso provides lower level direct access to gitignore and file type matchers.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/ignore/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/ignore"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/ignore/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\nignore = \"0.4\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/ignore/README.md",
+    "header": "Example",
+    "text_blocks": [
+      "This example shows the most basic usage of this crate. This code will\nrecursively traverse the current directory while automatically filtering out\nfiles and directories according to ignore globs found in files like\n.ignore and .gitignore:"
+    ],
+    "code_blocks": [
+      "use ignore::Walk;\n\nfor result in Walk::new(\"./\") {\n    // Each item yielded by the iterator is either a directory entry or an\n    // error, so either print the path or the error.\n    match result {\n        Ok(entry) => println!(\"{}\", entry.path().display()),\n        Err(err) => println!(\"ERROR: {}\", err),\n    }\n}"
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/ignore/README.md",
+    "header": "Example: advanced",
+    "text_blocks": [
+      "By default, the recursive directory iterator will ignore hidden files and\ndirectories. This can be disabled by building the iterator with WalkBuilder:",
+      "See the documentation for WalkBuilder for many other options."
+    ],
+    "code_blocks": [
+      "use ignore::WalkBuilder;\n\nfor result in WalkBuilder::new(\"./\").hidden(false).build() {\n    println!(\"{:?}\", result);\n}"
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/printer/README.md",
+    "header": "grep-printer",
+    "text_blocks": [
+      "Print results from line oriented searching in a human readable, aggregate or\nJSON Lines format.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/printer/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep-printer",
+      "NOTE: You probably don't want to use this crate directly. Instead, you\nshould prefer the facade defined in the\ngrep\ncrate."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/printer/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep-printer = \"0.1\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/cli/README.md",
+    "header": "grep-cli",
+    "text_blocks": [
+      "A utility library that provides common routines desired in search oriented\ncommand line applications. This includes, but is not limited to, parsing hex\nescapes, detecting whether stdin is readable and more. To the extent possible,\nthis crate strives for compatibility across Windows, macOS and Linux.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/cli/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep-cli",
+      "NOTE: You probably don't want to use this crate directly. Instead, you\nshould prefer the facade defined in the\ngrep\ncrate."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/cli/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep-cli = \"0.1\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/regex/README.md",
+    "header": "grep-regex",
+    "text_blocks": [
+      "The grep-regex crate provides an implementation of the Matcher trait from\nthe grep-matcher crate. This implementation permits Rust's regex engine to\nbe used in the grep crate for fast line oriented searching.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/regex/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep-regex",
+      "NOTE: You probably don't want to use this crate directly. Instead, you\nshould prefer the facade defined in the\ngrep\ncrate."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/regex/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep-regex = \"0.1\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/matcher/README.md",
+    "header": "grep-matcher",
+    "text_blocks": [
+      "This crate provides a low level interface for describing regular expression\nmatchers. The grep crate uses this interface in order to make the regex\nengine it uses pluggable.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/matcher/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep-matcher",
+      "NOTE: You probably don't want to use this crate directly. Instead, you\nshould prefer the facade defined in the\ngrep\ncrate."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/matcher/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep-matcher = \"0.1\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/grep/README.md",
+    "header": "grep",
+    "text_blocks": [
+      "ripgrep, as a library.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/grep/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep",
+      "NOTE: This crate isn't ready for wide use yet. Ambitious individuals can\nprobably piece together the parts, but there is no high level documentation\ndescribing how all of the pieces fit together."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/grep/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep = \"0.2\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/crates/grep/README.md",
+    "header": "Features",
+    "text_blocks": [
+      "This crate provides a pcre2 feature (disabled by default) which, when\nenabled, re-exports the grep-pcre2 crate as an alternative Matcher\nimplementation to the standard grep-regex implementation."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/pcre2/README.md",
+    "header": "grep-pcre2",
+    "text_blocks": [
+      "The grep-pcre2 crate provides an implementation of the Matcher trait from\nthe grep-matcher crate. This implementation permits PCRE2 to be used in the\ngrep crate for fast line oriented searching.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/pcre2/README.md",
+    "header": "Documentation",
+    "text_blocks": [
+      "https://docs.rs/grep-pcre2",
+      "NOTE: You probably don't want to use this crate directly. Instead, you\nshould prefer the facade defined in the\ngrep\ncrate.",
+      "If you're looking to just use PCRE2 from Rust, then you probably want the\npcre2\ncrate, which provide high level safe bindings to PCRE2."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/crates/pcre2/README.md",
+    "header": "Usage",
+    "text_blocks": [
+      "Add this to your Cargo.toml:"
+    ],
+    "code_blocks": [
+      "[dependencies]\ngrep-pcre2 = \"0.1\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "TBD",
+    "text_blocks": [
+      "Unreleased changes. Release notes have not yet been written.",
+      "Bug fixes:",
+      "BUG #3212:\nDon't check for the existence of .jj when --no-ignore is used."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "15.1.0",
+    "text_blocks": [
+      "This is a small release that fixes a bug with how ripgrep handles line\nbuffering. This might manifest as ripgrep printing output later than you\nexpect or not working correctly with tail -f (even if you're using the\n--line-buffered flag).",
+      "Bug fixes:",
+      "BUG #3194:\nFix a regression with --line-buffered introduced in ripgrep 15.0.0.",
+      "Feature enhancements:",
+      "FEATURE #3192:\nAdd hyperlink alias for Cursor."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "15.0.0 (2025-10-15)",
+    "text_blocks": [
+      "ripgrep 15 is a new major version release of ripgrep that mostly has bug fixes,\nsome minor performance improvements and minor new features. Here are some\nhighlights:",
+      "Several bugs around gitignore matching have been fixed. This includes\na commonly reported bug related to applying gitignore rules from parent\ndirectories.A memory usage regression when handling very large gitignore files has been\nfixed.rg -vf file, where file is empty, now matches everything.The -r/--replace flag now works with --json.A subset of Jujutsu (jj) repositories are now treated as if they were git\nrepositories. That is, ripgrep will respect jj's gitignores.Globs can now use nested curly braces.",
+      "Platform support:",
+      "aarch64 for Windows now has release artifacts.powerpc64 no longer has release artifacts generated for it. The CI\nrelease workflow stopped working, and I didn't deem it worth my time to\ndebug it. If someone wants this and can test it, I'd be happy to add it\nback.ripgrep binaries are now compiled with full LTO enabled. You may notice\nsmall performance improvements from this and a modest decrease in binary\nsize.",
+      "Performance improvements:",
+      "PERF #2111:\nDon't resolve helper binaries on Windows when -z/--search-zip isn't used.PERF #2865:\nAvoid using path canonicalization on Windows when emitting hyperlinks.",
+      "Bug fixes:",
+      "BUG #829,\nBUG #2731,\nBUG #2747,\nBUG #2770,\nBUG #2778,\nBUG #2836,\nBUG #2933,\nBUG #3067:\nFix bug related to gitignores from parent directories.BUG #1332,\nBUG #3001:\nMake rg -vf file where file is empty match everything.BUG #2177:\nIgnore a UTF-8 BOM marker at the start of .gitignore (and similar files).BUG #2750:\nFix memory usage regression for some truly large gitignore files.BUG #2944:\nFix a bug where the \"bytes searched\" in --stats output could be incorrect.BUG #2990:\nFix a bug where ripgrep would mishandle globs that ended with a ..BUG #2094,\nBUG #3076:\nFix bug with -m/--max-count and -U/--multiline showing too many matches.BUG #3100:\nPreserve line terminators when using -r/--replace flag.BUG #3108:\nFix a bug where -q --files-without-match inverted the exit code.BUG #3131:\nDocument inconsistency between -c/--count and --files-with-matches.BUG #3135:\nFix rare panic for some classes of large regexes on large haystacks.BUG #3140:\nEnsure hyphens in flag names are escaped in the roff text for the man page.BUG #3155:\nStatically compile PCRE2 into macOS release artifacts on aarch64.BUG #3173:\nFix ancestor ignore filter bug when searching whitelisted hidden files.BUG #3178:\nFix bug causing incorrect summary statistics with --json flag.BUG #3179:\nFix gitignore bug when searching absolute paths with global gitignores.BUG #3180:\nFix a panicking bug when using -U/--multiline and -r/--replace.",
+      "Feature enhancements:",
+      "Many enhancements to the default set of file types available for filtering.FEATURE #1872:\nMake -r/--replace work with --json.FEATURE #2708:\nCompletions for the fish shell take ripgrep's config file into account.FEATURE #2841:\nAdd italic to the list of available style attributes in --color.FEATURE #2842:\nDirectories containing .jj are now treated as git repositories.FEATURE #2849:\nWhen using multithreading, schedule files to search in order given on CLI.FEATURE #2943:\nAdd aarch64 release artifacts for Windows.FEATURE #3024:\nAdd highlight color type, for styling non-matching text in a matching line.FEATURE #3048:\nGlobs in ripgrep (and the globset crate) now support nested alternates.FEATURE #3096:\nImprove completions for --hyperlink-format in bash and fish.FEATURE #3102:\nImprove completions for --hyperlink-format in zsh."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "14.1.1 (2024-09-08)",
+    "text_blocks": [
+      "This is a minor release with a bug fix for a matching bug. In particular, a bug\nwas found that could cause ripgrep to ignore lines that should match. That is,\nfalse negatives. It is difficult to characterize the specific set of regexes\nin which this occurs as it requires multiple different optimization strategies\nto collide and produce an incorrect result. But as one reported example, in\nripgrep, the regex (?i:e.x|ex) does not match e-x when it should. (This\nbug is a result of an inner literal optimization performed in the grep-regex\ncrate and not in the regex crate.)",
+      "Bug fixes:",
+      "BUG #2884:\nFix bug where ripgrep could miss some matches that it should report.",
+      "Miscellaneous:",
+      "MISC #2748:\nRemove ripgrep's simd-accel feature because it was frequently broken."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "14.1.0 (2024-01-06)",
+    "text_blocks": [
+      "This is a minor release with a few small new features and bug fixes. This\nrelease contains a bug fix for unbounded memory growth while walking a\ndirectory tree. This release also includes improvements to the completions for\nthe fish shell, and release binaries for several additional ARM targets.",
+      "Bug fixes:",
+      "BUG #2664:\nFix unbounded memory growth in the ignore crate.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Lean and Meson.FEATURE #2684:\nImprove completions for the fish shell.FEATURE #2702:\nAdd release binaries for armv7-unknown-linux-gnueabihf,\narmv7-unknown-linux-musleabihf and armv7-unknown-linux-musleabi."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "14.0.3 (2023-11-28)",
+    "text_blocks": [
+      "This is a patch release with a bug fix for the --sortr flag.",
+      "Bug fixes:",
+      "BUG #2664:\nFix --sortr=path. I left a todo!() in the source. Oof."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "14.0.2 (2023-11-27)",
+    "text_blocks": [
+      "This is a patch release with a few small bug fixes.",
+      "Bug fixes:",
+      "BUG #2654:\nFix deb release sha256 sum file.BUG #2658:\nFix partial regression in the behavior of --null-data --line-regexp.BUG #2659:\nFix Fish shell completions.BUG #2662:\nFix typo in documentation for -i/--ignore-case."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "14.0.1 (2023-11-26)",
+    "text_blocks": [
+      "This a patch release meant to fix cargo install ripgrep on Windows.",
+      "Bug fixes:",
+      "BUG #2653:\nInclude pkg/windows/Manifest.xml in crate package."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "14.0.0 (2023-11-26)",
+    "text_blocks": [
+      "ripgrep 14 is a new major version release of ripgrep that has some new\nfeatures, performance improvements and a lot of bug fixes.",
+      "The headlining feature in this release is hyperlink support. In this release,\nthey are an opt-in feature but may change to an opt-out feature in the future.\nTo enable them, try passing --hyperlink-format default. If you use VS Code,\nthen try passing --hyperlink-format vscode. Please report your experience\nwith hyperlinks, positive or negative.",
+      "Another headlining development in this release is that it contains a rewrite\nof its regex engine. You generally shouldn't notice any changes, except for\nsome searches may get faster. You can read more about the regex engine rewrite\non my blog. Please report your performance improvements or\nregressions that you notice.",
+      "Finally, ripgrep switched the library it uses for argument parsing. Users\nshould not notice a difference in most cases (error messages have changed\nsomewhat), but flag overrides should generally be more consistent. For example,\nthings like --no-ignore --ignore-vcs work as one would expect (disables all\nfiltering related to ignore rules except for rules found in version control\nsystems such as git).",
+      "BREAKING CHANGES:",
+      "rg -C1 -A2 used to be equivalent to rg -A2, but now it is equivalent to\nrg -B1 -A2. That is, -A and -B no longer completely override -C.\nInstead, they only partially override -C.",
+      "Build process changes:",
+      "ripgrep's shell completions and man page are now created by running ripgrep\nwith a new --generate flag. For example, rg --generate man will write a\nman page in roff format on stdout. The release archives have not changed.The optional build dependency on asciidoc or asciidoctor has been\ndropped. Previously, it was used to produce ripgrep's man page. ripgrep now\nowns this process itself by writing roff directly.",
+      "Performance improvements:",
+      "PERF #1746:\nMake some cases with inner literals faster.PERF #1760:\nMake most searches with \\b look-arounds (among others) much faster.PERF #2591:\nParallel directory traversal now uses work stealing for faster searches.PERF #2642:\nParallel directory traversal has some contention reduced.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Ada, DITA, Elixir, Fuchsia, Gentoo,\nGradle, GraphQL, Markdown, Prolog, Raku, TypeScript, USD, VFEATURE #665:\nAdd a new --hyperlink-format flag that turns file paths into hyperlinks.FEATURE #1709:\nImprove documentation of ripgrep's behavior when stdout is a tty.FEATURE #1737:\nProvide binaries for Apple silicon.FEATURE #1790:\nAdd new --stop-on-nonmatch flag.FEATURE #1814:\nFlags are now categorized in -h/--help output and ripgrep's man page.FEATURE #1838:\nAn error is shown when searching for NUL bytes with binary detection enabled.FEATURE #2195:\nWhen extra-verbose mode is enabled in zsh, show extra file type info.FEATURE #2298:\nAdd instructions for installing ripgrep using cargo binstall.FEATURE #2409:\nAdded installation instructions for winget.FEATURE #2425:\nShell completions (and man page) can be created via rg --generate.FEATURE #2524:\nThe --debug flag now indicates whether stdin or ./ is being searched.FEATURE #2643:\nMake -d a short flag for --max-depth.FEATURE #2645:\nThe --version output will now also contain PCRE2 availability information.",
+      "Bug fixes:",
+      "BUG #884:\nDon't error when -v/--invert-match is used multiple times.BUG #1275:\nFix bug with \\b assertion in the regex engine.BUG #1376:\nUsing --no-ignore --ignore-vcs now works as one would expect.BUG #1622:\nAdd note about error messages to -z/--search-zip documentation.BUG #1648:\nFix bug where sometimes short flags with values, e.g., -M 900, would fail.BUG #1701:\nFix bug where some flags could not be repeated.BUG #1757:\nFix bug when searching a sub-directory didn't have ignores applied correctly.BUG #1891:\nFix bug when using -w with a regex that can match the empty string.BUG #1911:\nDisable mmap searching in all non-64-bit environments.BUG #1966:\nFix bug where ripgrep can panic when printing to stderr.BUG #2046:\nClarify that --pre can accept any kind of path in the documentation.BUG #2108:\nImprove docs for -r/--replace syntax.BUG #2198:\nFix bug where --no-ignore-dot would not ignore .rgignore.BUG #2201:\nImprove docs for -r/--replace flag.BUG #2288:\n-A and -B now only each partially override -C.BUG #2236:\nFix gitignore parsing bug where a trailing \\/ resulted in an error.BUG #2243:\nFix --sort flag for values other than path.BUG #2246:\nAdd note in --debug logs when binary files are ignored.BUG #2337:\nImprove docs to mention that --stats is always implied by --json.BUG #2381:\nMake -p/--pretty override flags like --no-line-number.BUG #2392:\nImprove global git config parsing of the excludesFile field.BUG #2418:\nClarify sorting semantics of --sort=path.BUG #2458:\nMake --trim run before -M/--max-columns takes effect.BUG #2479:\nAdd documentation about .ignore/.rgignore files in parent directories.BUG #2480:\nFix bug when using inline regex flags with -e/--regexp.BUG #2505:\nImprove docs for --vimgrep by mentioning footguns and some work-arounds.BUG #2519:\nFix incorrect default value in documentation for --field-match-separator.BUG #2523:\nMake executable searching take .com into account on Windows.BUG #2574:\nFix bug in -w/--word-regexp that would result in incorrect match offsets.BUG #2623:\nFix a number of bugs with the -w/--word-regexp flag.BUG #2636:\nStrip release binaries for macOS."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "13.0.0 (2021-06-12)",
+    "text_blocks": [
+      "ripgrep 13 is a new major version release of ripgrep that primarily contains\nbug fixes, some performance improvements and a few minor breaking changes.\nThere is also a fix for a security vulnerability on Windows\n(CVE-2021-3013).",
+      "Some highlights:",
+      "A new short flag, -., has been added. It is an alias for the --hidden flag,\nwhich instructs ripgrep to search hidden files and directories.",
+      "ripgrep is now using a new\nvectorized implementation of memmem,\nwhich accelerates many common searches. If you notice any performance\nregressions (or major improvements), I'd love to hear about them through an\nissue report!",
+      "Also, for Windows users targeting MSVC, Cargo will now build fully static\nexecutables of ripgrep. The release binaries for ripgrep 13 have been compiled\nusing this configuration.",
+      "BREAKING CHANGES:",
+      "Binary detection output has changed slightly.",
+      "In this release, a small tweak has been made to the output format when a binary\nfile is detected. Previously, it looked like this:",
+      "Now it looks like this:",
+      "vimgrep output in multi-line now only prints the first line for each match.",
+      "See issue 1866 for more\ndiscussion on this. Previously, every line in a match was duplicated, even\nwhen it spanned multiple lines. There are no changes to vimgrep output when\nmulti-line mode is disabled.",
+      "In multi-line mode, --count is now equivalent to --count-matches.",
+      "This appears to match how pcre2grep implements --count. Previously, ripgrep\nwould produce outright incorrect counts. Another alternative would be to simply\ncount the number of lines---even if it's more than the number of matches---but\nthat seems highly unintuitive.",
+      "FULL LIST OF FIXES AND IMPROVEMENTS:",
+      "Security fixes:",
+      "CVE-2021-3013:\nFixes a security hole on Windows where running ripgrep with either the\n-z/--search-zip or --pre flags can result in running arbitrary\nexecutables from the current directory.VULN #1773:\nThis is the public facing issue tracking CVE-2021-3013. ripgrep's README\nnow contains a section describing how to report a vulnerability.",
+      "Performance improvements:",
+      "PERF #1657:\nCheck if a file should be ignored first before issuing stat calls.PERF memchr#82:\nripgrep now uses a new vectorized implementation of memmem.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for ASP, Bazel, dvc, FlatBuffers,\nFuthark, minified files, Mint, pofiles (from GNU gettext) Racket, Red, Ruby,\nVCL, Yang.FEATURE #1404:\nripgrep now prints a warning if nothing is searched.FEATURE #1613:\nCargo will now produce static executables on Windows when using MSVC.FEATURE #1680:\nAdd -. as a short flag alias for --hidden.FEATURE #1842:\nAdd --field-{context,match}-separator for customizing field delimiters.FEATURE #1856:\nThe README now links to a\nSpanish translation.",
+      "Bug fixes:",
+      "BUG #1277:\nDocument cygwin path translation behavior in the FAQ.BUG #1739:\nFix bug where replacements were buggy if the regex matched a line terminator.BUG #1311:\nFix multi-line bug where a search & replace for \\n didn't work as expected.BUG #1401:\nFix buggy interaction between PCRE2 look-around and -o/--only-matching.BUG #1412:\nFix multi-line bug with searches using look-around past matching lines.BUG #1577:\nFish shell completions will continue to be auto-generated.BUG #1642:\nFixes a bug where using -m and -A printed more matches than the limit.BUG #1703:\nClarify the function of -u/--unrestricted.BUG #1708:\nClarify how -S/--smart-case works.BUG #1730:\nClarify that CLI invocation must always be valid, regardless of config file.BUG #1741:\nFix stdin detection when using PowerShell in UNIX environments.BUG #1756:\nFix bug where foo/** would match foo, but it shouldn't.BUG #1765:\nFix panic when --crlf is used in some cases.BUG #1638:\nCorrectly sniff UTF-8 and do transcoding, like we do for UTF-16.BUG #1816:\nAdd documentation for glob alternate syntax, e.g., {a,b,..}.BUG #1847:\nClarify how the --hidden flag works.BUG #1866:\nFix bug when computing column numbers in --vimgrep mode.BUG #1868:\nFix bug where --passthru and -A/-B/-C did not override each other.BUG #1869:\nClarify docs for --files-with-matches and --files-without-match.BUG #1878:\nFix bug where \\A could produce unanchored matches in multiline search.BUG 94e4b8e3:\nFix column numbers with --vimgrep is used with -U/--multiline."
+    ],
+    "code_blocks": [
+      "Binary file FOO matches (found \"\\0\" byte around offset XXX)",
+      "FOO: binary file matches (found \"\\0\" byte around offset XXX)"
+    ]
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "12.1.1 (2020-05-29)",
+    "text_blocks": [
+      "ripgrep 12.1.1 is a patch release that fixes a couple small bugs. In\nparticular, the ripgrep 12.1.0 release did not tag new releases for all of its\nin-tree dependencies. As a result, ripgrep built dependencies from crates.io\nwould produce a different build than compiling ripgrep from source on the\n12.1.0 tag. Namely, some crates like grep-cli had unreleased changes.",
+      "Bug fixes:",
+      "BUG #1581:\nCorrects some egregious markup output in --help.BUG #1591:\nMention the special $0 capture group in docs for the -r/--replace flag.BUG #1602:\nFix failing test resulting from out-of-sync dependencies."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "12.1.0 (2020-05-09)",
+    "text_blocks": [
+      "ripgrep 12.1.0 is a small minor version release that mostly includes bug fixes\nand documentation improvements. This release also contains some important\nnotices for downstream packagers.",
+      "Notices for downstream ripgrep package maintainers:",
+      "Fish shell completions will be removed in the ripgrep 13 release.\nSee #1577\nfor more details.ripgrep has switched from a2x to asciidoctor to generate the man page.\nIf asciidoctor is not present, then ripgrep will currently fall back to\na2x. Support for a2x will be dropped in the ripgrep 13 release.\nSee #1544\nfor more details.",
+      "Feature enhancements:",
+      "FEATURE #1547:\nSupport decompressing .Z files via uncompress.",
+      "Bug fixes:",
+      "BUG #1252:\nAdd a section on the --pre flag to the GUIDE.BUG #1339:\nImprove error message when a pattern with invalid UTF-8 is provided.BUG #1524:\nNote how to escape a $ when using --replace.BUG #1537:\nFix match bug caused by inner literal optimization.BUG #1544:\nripgrep now uses asciidoctor instead of a2x to generate its man page.BUG #1550:\nSubstantially reduce peak memory usage when searching wide directories.BUG #1571:\nAdd note about configuration files in --type-{add,clear} docs.BUG #1573:\nFix incorrect --count-matches output when using look-around."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "12.0.1 (2020-03-29)",
+    "text_blocks": [
+      "ripgrep 12.0.1 is a small patch release that includes a minor bug fix relating\nto superfluous error messages when searching git repositories with sub-modules.\nThis was a regression introduced in the 12.0.0 release.",
+      "Bug fixes:",
+      "BUG #1520:\nDon't emit spurious error messages in git repositories with submodules."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "12.0.0 (2020-03-15)",
+    "text_blocks": [
+      "ripgrep 12 is a new major version release of ripgrep that contains many bug\nfixes, several important performance improvements and a few minor new features.",
+      "In a near future release, I am hoping to add an\nindexing feature\nto ripgrep, which will dramatically speed up searching by building an index.\nFeedback would very much be appreciated, especially on the user experience\nwhich will be difficult to get right.",
+      "This release has no known breaking changes.",
+      "Deprecations:",
+      "The --no-pcre2-unicode flag is deprecated. Instead, use the --no-unicode\nflag, which applies to both the default regex engine and PCRE2. For now,\n--no-pcre2-unicode and --pcre2-unicode are aliases to --no-unicode\nand --unicode, respectively. The --[no-]pcre2-unicode flags may be\nremoved in a future release.The --auto-hybrid-regex flag is deprecated. Instead, use the new --engine\nflag with the auto value.",
+      "Performance improvements:",
+      "PERF #1087:\nripgrep is smarter when detected literals are whitespace.PERF #1381:\nDirectory traversal is sped up with speculative ignore-file existence checks.PERF cd8ec38a:\nImprove inner literal detection to cover more cases more effectively.\ne.g.,  +Sherlock Holmes + now has Sherlock Holmes extracted instead\nof  .PERF 6a0e0147:\nImprove literal detection when the -w/--word-regexp flag is used.PERF ad97e9c9:\nImprove overall performance of the -w/--word-regexp flag.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for erb, diff, Gradle, HAML, Org,\nPostscript, Skim, Slim, Slime, RPM Spec files, Typoscript, xml.FEATURE #1370:\nAdd --include-zero flag that shows files searched without matches.FEATURE #1390:\nAdd --no-context-separator flag that always hides context separators.FEATURE #1414:\nAdd --no-require-git flag to allow ripgrep to respect gitignores anywhere.FEATURE #1420:\nAdd --no-ignore-exclude to disregard rules in .git/info/exclude files.FEATURE #1466:\nAdd --no-ignore-files flag to disable all --ignore-file flags.FEATURE #1488:\nAdd '--engine' flag for easier switching between regex engines.FEATURE 75cbe88f:\nAdd --no-unicode flag. This works on all supported regex engines.",
+      "Bug fixes:",
+      "BUG #1291:\nripgrep now works in non-existent directories.BUG #1319:\nFix match bug due to errant literal detection.BUG #1335:\nFixes a performance bug when searching plain text files with very long lines.\nThis was a serious performance regression in some cases.BUG #1344:\nDocument usage of --type all.BUG #1389:\nFixes a bug where ripgrep would panic when searching a symlinked directory.BUG #1439:\nImprove documentation for ripgrep's automatic stdin detection.BUG #1441:\nRemove CPU features from man page.BUG #1442,\nBUG #1478:\nImprove documentation of the -g/--glob flag.BUG #1445:\nripgrep now respects ignore rules from .git/info/exclude in worktrees.BUG #1485:\nFish shell completions from the release Debian package are now installed to\n/usr/share/fish/vendor_completions.d/rg.fish."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "11.0.2 (2019-08-01)",
+    "text_blocks": [
+      "ripgrep 11.0.2 is a new patch release that fixes a few bugs, including a\nperformance regression and a matching bug when using the -F/--fixed-strings\nflag.",
+      "Feature enhancements:",
+      "FEATURE #1293:\nAdded --glob-case-insensitive flag that makes --glob behave as --iglob.",
+      "Bug fixes:",
+      "BUG #1246:\nAdd translations to README, starting with an unofficial Chinese translation.BUG #1259:\nFix bug where the last byte of a -f file was stripped if it wasn't a \\n.BUG #1261:\nDocument that no error is reported when searching for \\n with -P/--pcre2.BUG #1284:\nMention .ignore and .rgignore more prominently in the README.BUG #1292:\nFix bug where --with-filename was sometimes enabled incorrectly.BUG #1268:\nFix major performance regression in GitHub x86_64-linux binary release.BUG #1302:\nShow better error messages when a non-existent preprocessor command is given.BUG #1334:\nFix match regression with -F flag when patterns contain meta characters."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "11.0.1 (2019-04-16)",
+    "text_blocks": [
+      "ripgrep 11.0.1 is a new patch release that fixes a search regression introduced\nin the previous 11.0.0 release. In particular, ripgrep can enter an infinite\nloop for some search patterns when searching invalid UTF-8.",
+      "Bug fixes:",
+      "BUG #1247:\nFix search bug that can cause ripgrep to enter an infinite loop."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "11.0.0 (2019-04-15)",
+    "text_blocks": [
+      "ripgrep 11 is a new major version release of ripgrep that contains many bug\nfixes, some performance improvements and a few feature enhancements. Notably,\nripgrep's user experience for binary file filtering has been improved. See the\nguide's new section on binary data for more details.",
+      "This release also marks a change in ripgrep's versioning. Where as the previous\nversion was 0.10.0, this version is 11.0.0. Moving forward, ripgrep's\nmajor version will be increased a few times per year. ripgrep will continue to\nbe conservative with respect to backwards compatibility, but may occasionally\nintroduce breaking changes, which will always be documented in this CHANGELOG.\nSee issue 1172 for a bit\nmore detail on why this versioning change was made.",
+      "This release increases the minimum supported Rust version from 1.28.0 to\n1.34.0.",
+      "BREAKING CHANGES:",
+      "ripgrep has tweaked its exit status codes to be more like GNU grep's. Namely,\nif a non-fatal error occurs during a search, then ripgrep will now always\nemit a 2 exit status code, regardless of whether a match is found or not.\nPreviously, ripgrep would only emit a 2 exit status code for a catastrophic\nerror (e.g., regex syntax error). One exception to this is if ripgrep is run\nwith -q/--quiet. In that case, if an error occurs and a match is found,\nthen ripgrep will exit with a 0 exit status code.Supplying the -u/--unrestricted flag three times is now equivalent to\nsupplying --no-ignore --hidden --binary. Previously, -uuu was equivalent\nto --no-ignore --hidden --text. The difference is that --binary disables\nbinary file filtering without potentially dumping binary data into your\nterminal. That is, rg -uuu foo should now be equivalent to grep -r foo.The avx-accel feature of ripgrep has been removed since it is no longer\nnecessary. All uses of AVX in ripgrep are now enabled automatically via\nruntime CPU feature detection. The simd-accel feature does remain available\n(only for enabling SIMD for transcoding), however, it does increase\ncompilation times substantially at the moment.",
+      "Performance improvements:",
+      "PERF #497,\nPERF #838:\nMake rg -F -f dictionary-of-literals much faster.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Apache Thrift, ASP, Bazel, Brotli,\nBuildStream, bzip2, C, C++, Cython, gzip, Java, Make, Postscript, QML, Tex,\nXML, xz, zig and zstd.FEATURE #855:\nAdd --binary flag for disabling binary file filtering.FEATURE #1078:\nAdd --max-columns-preview flag for showing a preview of long lines.FEATURE #1099:\nAdd support for Brotli and Zstd to the -z/--search-zip flag.FEATURE #1138:\nAdd --no-ignore-dot flag for ignoring .ignore files.FEATURE #1155:\nAdd --auto-hybrid-regex flag for automatically falling back to PCRE2.FEATURE #1159:\nripgrep's exit status logic should now match GNU grep. See updated man page.FEATURE #1164:\nAdd --ignore-file-case-insensitive for case insensitive ignore globs.FEATURE #1185:\nAdd -I flag as a short option for the --no-filename flag.FEATURE #1207:\nAdd none value to -E/--encoding to forcefully disable all transcoding.FEATURE da9d7204:\nAdd --pcre2-version for querying showing PCRE2 version information.",
+      "Bug fixes:",
+      "BUG #306,\nBUG #855:\nImprove the user experience for ripgrep's binary file filtering.BUG #373,\nBUG #1098:\n** is now accepted as valid syntax anywhere in a glob.BUG #916:\nripgrep no longer hangs when searching /proc with a zombie process present.BUG #1052:\nFix bug where ripgrep could panic when transcoding UTF-16 files.BUG #1055:\nSuggest -U/--multiline when a pattern contains a \\n.BUG #1063:\nAlways strip a BOM if it's present, even for UTF-8.BUG #1064:\nFix inner literal detection that could lead to incorrect matches.BUG #1079:\nFixes a bug where the order of globs could result in missing a match.BUG #1089:\nFix another bug where ripgrep could panic when transcoding UTF-16 files.BUG #1091:\nAdd note about inverted flags to the man page.BUG #1093:\nFix handling of literal slashes in gitignore patterns.BUG #1095:\nFix corner cases involving the --crlf flag.BUG #1101:\nFix AsciiDoc escaping for man page output.BUG #1103:\nClarify what --encoding auto does.BUG #1106:\n--files-with-matches and --files-without-match work with one file.BUG #1121:\nFix bug that was triggering Windows antimalware when using the --files\nflag.BUG #1125,\nBUG #1159:\nripgrep shouldn't panic for rg -h | rg and should emit correct exit status.BUG #1144:\nFixes a bug where line numbers could be wrong on big-endian machines.BUG #1154:\nWindows files with \"hidden\" attribute are now treated as hidden.BUG #1173:\nFix handling of ** patterns in gitignore files.BUG #1174:\nFix handling of repeated ** patterns in gitignore files.BUG #1176:\nFix bug where -F/-x weren't applied to patterns given via -f.BUG #1189:\nDocument cases where ripgrep may use a lot of memory.BUG #1203:\nFix a matching bug related to the suffix literal optimization.BUG 8f14cb18:\nIncrease the default stack size for PCRE2's JIT."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.10.0 (2018-09-07)",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that contains some major new\nfeatures, a huge number of bug fixes, and is the first release based on\nlibripgrep. The entirety of ripgrep's core search and printing code has been\nrewritten and generalized so that anyone can make use of it.",
+      "Major new features include PCRE2 support, multi-line search and a JSON output\nformat.",
+      "BREAKING CHANGES:",
+      "The minimum version required to compile Rust has now changed to track the\nlatest stable version of Rust. Patch releases will continue to compile with\nthe same version of Rust as the previous patch release, but new minor\nversions will use the current stable version of the Rust compile as its\nminimum supported version.The match semantics of -w/--word-regexp have changed slightly. They used\nto be \\b(?:<your pattern>)\\b, but now it's\n(?:^|\\W)(?:<your pattern>)(?:$|\\W). This matches the behavior of GNU grep\nand is believed to be closer to the intended semantics of the flag. See\n#389 for more details.",
+      "Feature enhancements:",
+      "FEATURE #162:\nlibripgrep is now a thing. The primary crate is\ngrep.FEATURE #176:\nAdd -U/--multiline flag that permits matching over multiple lines.FEATURE #188:\nAdd -P/--pcre2 flag that gives support for look-around and backreferences.FEATURE #244:\nAdd --json flag that prints results in a JSON Lines format.FEATURE #321:\nAdd --one-file-system flag to skip directories on different file systems.FEATURE #404:\nAdd --sort and --sortr flag for more sorting. Deprecate --sort-files.FEATURE #416:\nAdd --crlf flag to permit $ to work with carriage returns on Windows.FEATURE #917:\nThe --trim flag strips prefix whitespace from all lines printed.FEATURE #993:\nAdd --null-data flag, which makes ripgrep use NUL as a line terminator.FEATURE #997:\nThe --passthru flag now works with the --replace flag.FEATURE #1038-1:\nAdd --line-buffered and --block-buffered for forcing a buffer strategy.FEATURE #1038-2:\nAdd --pre-glob for filtering files through the --pre flag.",
+      "Bug fixes:",
+      "BUG #2:\nSearching with non-zero context can now use memory maps if appropriate.BUG #200:\nripgrep will now stop correctly when its output pipe is closed.BUG #389:\nThe -w/--word-regexp flag now works more intuitively.BUG #643:\nDetection of readable stdin has improved on Windows.BUG #441,\nBUG #690,\nBUG #980:\nMatching empty lines now works correctly in several corner cases.BUG #764:\nColor escape sequences now coalesce, which reduces output size.BUG #842:\nAdd man page to binary Debian package.BUG #922:\nripgrep is now more robust with respect to memory maps failing.BUG #937:\nColor escape sequences are no longer emitted for empty matches.BUG #940:\nContext from the --passthru flag should not impact process exit status.BUG #984:\nFixes bug in ignore crate where first path was always treated as a symlink.BUG #990:\nRead stderr asynchronously when running a process.BUG #1013:\nAdd compile time and runtime CPU features to --version output.BUG #1028:\nDon't complete bare pattern after -f in zsh."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.9.0 (2018-08-03)",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that contains some minor new\nfeatures and a panoply of bug fixes.",
+      "Releases provided on Github for x86_64 will now work on all target CPUs, and\nwill also automatically take advantage of features found on modern CPUs (such\nas AVX2) for additional optimizations.",
+      "This release increases the minimum supported Rust version from 1.20.0 to\n1.23.0.",
+      "It is anticipated that the next release of ripgrep (0.10.0) will provide\nmulti-line search support and a JSON output format.",
+      "BREAKING CHANGES:",
+      "When --count and --only-matching are provided simultaneously, the\nbehavior of ripgrep is as if the --count-matches flag was given. That is,\nthe total number of matches is reported, where there may be multiple matches\nper line. Previously, the behavior of ripgrep was to report the total number\nof matching lines. (Note that this behavior diverges from the behavior of\nGNU grep.)Octal syntax is no longer supported. ripgrep previously accepted expressions\nlike \\1 as syntax for matching U+0001, but ripgrep will now report an\nerror instead.The --line-number-width flag has been removed. Its functionality was not\ncarefully considered with all ripgrep output formats.\nSee #795 for more\ndetails.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Android, Bazel, Fuchsia, Haskell,\nJava and Puppet.FEATURE #411:\nAdd a --stats flag, which emits aggregate statistics after search results.FEATURE #646:\nAdd a --no-ignore-messages flag, which suppresses parse errors from reading\n.ignore and .gitignore files.FEATURE #702:\nSupport \\u{..} Unicode escape sequences.FEATURE #812:\nAdd -b/--byte-offset flag that shows the byte offset of each matching line.FEATURE #814:\nAdd --count-matches flag, which is like --count, but for each match.FEATURE #880:\nAdd a --no-column flag, which disables column numbers in the output.FEATURE #898:\nAdd support for lz4 when using the -z/--search-zip flag.FEATURE #924:\ntermcolor has moved to its own repository:\nhttps://github.com/BurntSushi/termcolorFEATURE #934:\nAdd a new flag, --no-ignore-global, that permits disabling global\ngitignores.FEATURE #967:\nRename --maxdepth to --max-depth for consistency. Keep --maxdepth for\nbackwards compatibility.FEATURE #978:\nAdd a --pre option to filter inputs with an arbitrary program.FEATURE fca9709d:\nImprove zsh completion.",
+      "Bug fixes:",
+      "BUG #135:\nRelease portable binaries that conditionally use SSSE3, AVX2, etc., at\nruntime.BUG #268:\nPrint descriptive error message when trying to use look-around or\nbackreferences.BUG #395:\nShow comprehensible error messages for regexes like \\s*{.BUG #526:\nSupport backslash escapes in globs.BUG #795:\nFix problems with --line-number-width by removing it.BUG #832:\nClarify usage instructions for -f/--file flag.BUG #835:\nFix small performance regression while crawling very large directory trees.BUG #851:\nFix -S/--smart-case detection once and for all.BUG #852:\nBe robust with respect to ENOMEM errors returned by mmap.BUG #853:\nUpgrade grep crate to regex-syntax 0.6.0.BUG #893:\nImprove support for git submodules.BUG #900:\nWhen no patterns are given, ripgrep should never match anything.BUG #907:\nripgrep will now stop traversing after the first file when --quiet --files\nis used.BUG #918:\nDon't skip tar archives when -z/--search-zip is used.BUG #934:\nDon't respect gitignore files when searching outside git repositories.BUG #948:\nUse exit code 2 to indicate error, and use exit code 1 to indicate no\nmatches.BUG #951:\nAdd stdin example to ripgrep usage documentation.BUG #955:\nUse buffered writing when not printing to a tty, which fixes a performance\nregression.BUG #957:\nImprove the error message shown for --path separator / in some Windows\nshells.BUG #964:\nAdd a --no-fixed-strings flag to disable -F/--fixed-strings.BUG #988:\nFix a bug in the ignore crate that prevented the use of explicit ignore\nfiles after disabling all other ignore rules.BUG #995:\nRespect $XDG_CONFIG_DIR/git/config for detecting core.excludesFile."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.8.1 (2018-02-20)",
+    "text_blocks": [
+      "This is a patch release of ripgrep that primarily fixes regressions introduced\nin 0.8.0 (#820 and #824) in directory traversal on Windows. These regressions\ndo not impact non-Windows users.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for csv and VHDL.FEATURE #798:\nAdd underline support to termcolor and ripgrep. See documentation on the\n--colors flag for details.",
+      "Bug fixes:",
+      "BUG #684:\nImprove documentation for the --ignore-file flag.BUG #789:\nDon't show (rev ) if the revision wasn't available during the build.BUG #791:\nAdd man page to ARM release.BUG #797:\nImprove documentation for \"intense\" setting in termcolor.BUG #800:\nFix a bug in the ignore crate for custom ignore files. This had no impact\non ripgrep.BUG #807:\nFix a bug where rg --hidden . behaved differently from rg --hidden ./.BUG #815:\nClarify a common failure mode in user guide.BUG #820:\nFixes a bug on Windows where symlinks were followed even if not requested.BUG #824:\nFix a performance regression in directory traversal on Windows."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.8.0 (2018-02-11)",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that satisfies several popular\nfeature requests (config files, search compressed files, true colors), fixes\nmany bugs and improves the quality of life for ripgrep maintainers. This\nrelease also includes greatly improved documentation in the form of a\nUser Guide and a FAQ.",
+      "This release increases the minimum supported Rust version from 1.17 to\n1.20.",
+      "BREAKING CHANGES:",
+      "Note that these are all very minor and unlikely to impact most users.",
+      "In order to support configuration files, flag overrides needed to be\nrethought. In some cases, this changed ripgrep's behavior. For example,\nin ripgrep 0.7.1, rg foo -s -i will perform a case sensitive search\nsince the -s/--case-sensitive flag was defined to always take precedence\nover the -i/--ignore-case flag, regardless of position. In ripgrep 0.8.0\nhowever, the override rule for all flags has changed to \"the most recent\nflag wins among competing flags.\" That is, rg foo -s -i now performs a\ncase insensitive search.The -M/--max-columns flag was tweaked so that specifying a value of 0\nnow makes ripgrep behave as if the flag was absent. This makes it possible\nto set a default value in a configuration file and then override it. The\nprevious ripgrep behavior was to suppress all matching non-empty lines.In all globs, [^...] is now equivalent to [!...] (indicating class\nnegation). Previously, ^ had no special significance in a character class.For downstream packagers, the directory hierarchy in ripgrep's archive\nreleases has changed. The root directory now only contains the executable,\nREADME and license. There is now a new directory called doc which contains\nthe man page (previously in the root), a user guide (new), a FAQ (new) and\nthe CHANGELOG (previously not included in release). The complete\ndirectory remains the same.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for\nApache Avro, C++, GN, Google Closure Templates, Jupyter notebooks, man pages,\nProtocol Buffers, Smarty and Web IDL.FEATURE #196:\nSupport a configuration file. See\nthe new user guide\nfor details.FEATURE #261:\nAdd extended or \"true\" color support. Works in Windows 10!\nSee the FAQ for details.FEATURE #539:\nSearch gzip, bzip2, lzma or xz files when given -z/--search-zip flag.FEATURE #544:\nAdd support for line number alignment via a new --line-number-width flag.FEATURE #654:\nSupport linuxbrew in ripgrep's Brew tap.FEATURE #673:\nBring back .rgignore files. (A higher precedent, application specific\nversion of .ignore.)FEATURE #676:\nProvide ARM binaries. WARNING: This will be provided on a best effort\nbasis.FEATURE #709:\nSuggest -F/--fixed-strings flag on a regex syntax error.FEATURE #740:\nAdd a --passthru flag that causes ripgrep to print every line it reads.FEATURE #785:\nOverhaul documentation. Cleaned up README, added user guide and FAQ.FEATURE 7f5c07:\nAdd hidden flags for convenient overrides (e.g., --no-text).",
+      "Bug fixes:",
+      "BUG #553:\nPermit flags to be repeated.BUG #633:\nFix a bug where ripgrep would panic on Windows while following symlinks.BUG #649:\nFix handling of !**/ in .gitignore.BUG #663:\nBREAKING CHANGE: Support [^...] glob syntax (as identical to [!...]).BUG #693:\nDon't display context separators when not printing matches.BUG #705:\nFix a bug that prevented ripgrep from searching OneDrive directories.BUG #717:\nImprove --smart-case uppercase character detection.BUG #725:\nClarify that globs do not override explicitly given paths to search.BUG #742:\nWrite ANSI reset code as \\x1B[0m instead of \\x1B[m.BUG #747:\nRemove yarn.lock from YAML file type.BUG #760:\nripgrep can now search /sys/devices/system/cpu/vulnerabilities/* files.BUG #761:\nFix handling of gitignore patterns that contain a /.BUG #776:\nBREAKING CHANGE: --max-columns=0 now disables the limit.BUG #779:\nClarify documentation for --files-without-match.BUG #780,\nBUG #781:\nFix bug where ripgrep missed some matching lines.",
+      "Maintenance fixes:",
+      "MAINT #772:\nDrop env_logger in favor of simpler logger to avoid many new dependencies.MAINT #772:\nAdd git revision hash to ripgrep's version string.MAINT #772:\n(Seemingly) improve compile times.MAINT #776:\nAutomatically generate man page during build.MAINT #786:\nRemove use of unsafe in globset. :tada:MAINT e9d448:\nAdd an issue template (has already drastically improved bug reports).MAINT ae2d03:\nRemove the compile script.",
+      "Friends of ripgrep:",
+      "I'd like to extend my gratitude to\n@balajisivaraman\nfor their recent hard work in a number of areas, and in particular, for\nimplementing the \"search compressed files\" feature. Their work in sketching out\na specification for that and other work has been exemplary.",
+      "Thanks\n@balajisivaraman!"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.7.1 (2017-10-22)",
+    "text_blocks": [
+      "This is a patch release of ripgrep that includes a fix to very bad regression\nintroduced in ripgrep 0.7.0.",
+      "Bug fixes:",
+      "BUG #648:\nFix a bug where it was very easy to exceed standard file descriptor limits."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.7.0 (2017-10-20)",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that includes mostly bug fixes.",
+      "ripgrep continues to require Rust 1.17, and there are no known breaking changes\nintroduced in this release.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for config & license files, Elm,\nPurescript, Standard ML, sh, systemd, TerraformFEATURE #593:\nUsing both -o/--only-matching and -r/--replace does the right thing.",
+      "Bug fixes:",
+      "BUG #200:\nripgrep will stop when its pipe is closed.BUG #402:\nFix context printing bug when the -m/--max-count flag is used.BUG #521:\nFix interaction between -r/--replace and terminal colors.BUG #559:\nIgnore test that tried reading a non-UTF-8 file path on macOS.BUG #599:\nFix color escapes on empty matches.BUG #600:\nAvoid expensive (on Windows) file handle check when using --files.BUG #618:\nClarify installation instructions for Ubuntu users.BUG #633:\nFaster symlink loop checking on Windows."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.6.0 (2017-08-23)",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that includes many bug fixes\nand a few new features such as --iglob and -x/--line-regexp.",
+      "Note that this release increases the minimum supported Rust version from 1.12\nto 1.17.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for BitBake, C++, Cabal, cshtml, Julia,\nMake, msbuild, QMake, YoctoFEATURE #163:\nAdd an --iglob flag that is like -g/--glob, but matches globs\ncase insensitively.FEATURE #520:\nAdd -x/--line-regexp flag, which requires a match to span an entire line.FEATURE #551,\nFEATURE #554:\nignore: add new matched_path_or_any_parents method.",
+      "Bug fixes:",
+      "BUG #342:\nFix invisible text in some PowerShell environments by changing the\ndefault color scheme on Windows.BUG #413:\nRelease binaries on Unix are now strip'd by default. This decreases\nbinary size by an order of magnitude.BUG #483:\nWhen --quiet is passed, --files should be quiet.BUG #488:\nWhen --vimgrep is passed, --with-filename should be enabled\nautomatically.BUG #493:\nFix another bug in the implementation of the -o/--only-matching\nflag.BUG #499:\nPermit certain flags to override others.BUG #523:\nwincolor: Re-fetch Windows console on all calls.BUG #523:\n--version now shows enabled compile-time features.BUG #532,\nBUG #536,\nBUG #538,\nBUG #540,\nBUG #560,\nBUG #565:\nImprove zsh completion.BUG #578:\nEnable SIMD for encoding_rs when appropriate.BUG #580:\nFix -w/--word-regexp in the presence of capturing groups.BUG #581:\nDocument that ripgrep may terminate unexpectedly when searching via\nmemory maps (which can happen using default settings).",
+      "Friends of ripgrep:",
+      "I'd like to give a big Thank You to @okdana for their recent hard work on\nripgrep. This includes new features like --line-regexp, heroic effort on\nzsh auto-completion and thinking through some thorny argv issues with me.",
+      "I'd also like to thank @ericbn for their work on improving ripgrep's argv\nparsing by allowing some flags to override others.",
+      "Thanks @okdana and @ericbn!"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.5.2 (2017-05-11)",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for Nix.FEATURE #362:\nAdd --regex-size-limit and --dfa-size-limit flags.FEATURE #444:\nImprove error messages for invalid globs.",
+      "Bug fixes:",
+      "BUG #442:\nFix line wrapping in --help output.BUG #451:\nFix bug with duplicate output when using -o/--only-matching flag."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.5.1 (2017-04-09)",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for vim.FEATURE #34:\nAdd a -o/--only-matching flag.FEATURE #377:\nColumn numbers can now be customized with a color. (The default is\nno color.)FEATURE #419:\nAdded -0 short flag option for --null.",
+      "Bug fixes:",
+      "BUG #381:\nInclude license text in all subcrates.BUG #418,\nBUG #426,\nBUG #439:\nFix a few bugs with -h/--help output."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.5.0 (2017-03-12)",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that includes one minor breaking\nchange, bug fixes and several new features including support for text encodings\nother than UTF-8.",
+      "A notable accomplishment with respect to Rust is that ripgrep proper now only\ncontains a single unsafe use (for accessing the contents of a memory map).",
+      "The breaking change is:",
+      "FEATURE #380:\nLine numbers are now hidden by default when ripgrep is printing to a tty\nand the only thing searched is stdin.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Ceylon, CSS, Elixir, HTML, log,\nSASS, SVG, TwigFEATURE #1:\nAdd support for additional text encodings, including automatic detection for\nUTF-16 via BOM sniffing. Explicit text encoding support with the\n-E/--encoding flag was also added for latin-1, GBK, EUC-JP\nand Shift_JIS, among others. The full list can be found here:\nhttps://encoding.spec.whatwg.org/#concept-encoding-getFEATURE #129:\nAdd a new -M/--max-columns flag that omits lines longer than the given\nnumber of bytes. (Disabled by default!)FEATURE #369:\nA new flag, --max-filesize, was added for limiting searches to files with\na maximum file size.",
+      "Bug fixes:",
+      "BUG #52,\nBUG #311:\nTweak how binary files are detected and handled. (We are slightly less\nconservative and will no longer use memory without bound.)BUG #326:\nWhen --files flag is given, we should never attempt to parse positional\narguments as regexes.BUG #327:\nPermit the --heading flag to override the --no-heading flag.BUG #340:\nClarify that the -u/--unrestricted flags are aliases.BUG #343:\nGlobal git ignore config should use $HOME/.config/git/ignore and not\n$HOME/git/ignore.BUG #345:\nClarify docs for -g/--glob flag.BUG #381:\nAdd license files to each sub-crate.BUG #383:\nUse latest version of clap (for argv parsing).BUG #392:\nFix translation of set globs (e.g., {foo,bar,quux}) to regexes.BUG #401:\nAdd PowerShell completion file to Windows release.BUG #405:\nFix bug when excluding absolute paths with the -g/--glob flag."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.4.0",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that includes a couple very\nminor breaking changes, a few new features and lots of bug fixes.",
+      "This version of ripgrep upgrades its regex dependency from 0.1 to 0.2,\nwhich includes a few minor syntax changes:",
+      "POSIX character classes now require double bracketing. Previously, the regex\n[:upper:] would parse as the upper POSIX character class. Now it parses\nas the character class containing the characters :upper:. The fix to this\nchange is to use [[:upper:]] instead. Note that variants like\n[[:upper:][:blank:]] continue to work.The character [ must always be escaped inside a character class.The characters &, - and ~ must be escaped if any one of them are\nrepeated consecutively. For example, [&], [\\&], [\\&\\&], [&-&] are all\nequivalent while [&&] is illegal. (The motivation for this and the prior\nchange is to provide a backwards compatible path for adding character class\nset notation.)",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Crystal, Kotlin, Perl, PowerShell,\nRuby, SwigFEATURE #83:\nType definitions can now include other type definitions.FEATURE #243:\nBREAKING CHANGE: The --column flag now implies --line-number.FEATURE #263:\nAdd a new --sort-files flag.FEATURE #275:\nAdd a new --path-separator flag. Useful in cygwin.",
+      "Bug fixes:",
+      "BUG #182:\nRedux: use more portable ANSI color escape sequences when possible.BUG #258:\nFix bug that caused ripgrep's parallel iterator to spin and burn CPU.BUG #262:\nDocument how to install shell completion files.BUG #266,\nBUG #293:\nFix handling of bold styling and change the default colors.BUG #268:\nMake lack of backreference support more explicit.BUG #271:\nRemove ~ dependency on clap.BUG #277:\nFix cosmetic issue in globset crate docs.BUG #279:\nripgrep did not terminate when -q/--quiet was given.BUG #281:\nBREAKING CHANGE: Completely remove ^C handling from ripgrep.BUG #284:\nMake docs for -g/--glob clearer.BUG #286:\nWhen stdout is redirected to a file, don't search that file.BUG #287:\nFix ZSH completions.BUG #295:\nRemove superfluous memmap dependency in grep crate.BUG #308:\nImprove docs for -r/--replace.BUG #313:\nUpdate bytecount dep to latest version.BUG #318:\nFix invalid UTF-8 output bug in Windows consoles."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.3.2",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for Less, Sass, stylus, Zsh",
+      "Bug fixes:",
+      "BUG #229:\nMake smart case slightly less conservative.BUG #247:\nClarify use of --heading/--no-heading.BUG #251,\nBUG #264,\nBUG #267:\nFix matching bug caused by literal optimizations.BUG #256:\nFix bug that caused rg foo and rg foo/ to have different behavior\nwhen foo was a symlink.BUG #270:\nFix bug where patterns starting with a - couldn't be used with the\n-e/--regexp flag. (This resolves a regression that was introduced in\nripgrep 0.3.0.)"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.3.1",
+    "text_blocks": [
+      "Bug fixes:",
+      "BUG #242:\nripgrep didn't respect --colors foo:none correctly. Now it does."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.3.0",
+    "text_blocks": [
+      "This is a new minor version release of ripgrep that includes two breaking\nchanges with lots of bug fixes and some new features and performance\nimprovements. Notably, if you had a problem with colors or piping on Windows\nbefore, then that should now be fixed in this release.",
+      "BREAKING CHANGES:",
+      "ripgrep now requires Rust 1.11 to compile. Previously, it could build on\nRust 1.9. The cause of this was the move from\nDocopt to Clap\nfor argument parsing.The -e/--regexp flag can no longer accept a pattern starting with a -.\nThere are two work-arounds: rg -- -foo and rg [-]foo or rg -e [-]foo\nwill all search for the same -foo pattern. The cause of this was the move\nfrom Docopt to Clap\nfor argument parsing.\nThis may get fixed in the\nfuture..",
+      "Performance improvements:",
+      "PERF #33:\nripgrep now performs similar to GNU grep on small corpora.PERF #136:\nripgrep no longer slows down because of argument parsing when given a large\nargument list.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Elixir.FEATURE #7:\nAdd a -f/--file flag that causes ripgrep to read patterns from a file.FEATURE #51:\nAdd a --colors flag that enables one to customize the colors used in\nripgrep's output.FEATURE #138:\nAdd a --files-without-match flag that shows only file paths that contain\nzero matches.FEATURE #230:\nAdd completion files to the release (Bash, Fish and PowerShell).",
+      "Bug fixes:",
+      "BUG #37:\nUse correct ANSI escape sequences when TERM=screen.linux.BUG #94:\nripgrep now detects stdin on Windows automatically.BUG #117:\nColors should now work correctly and automatically inside mintty.BUG #182:\nColors should now work within Emacs. In particular, --color=always will\nemit colors regardless of the current environment.BUG #189:\nShow less content when running rg -h. The full help content can be\naccessed with rg --help.BUG #210:\nSupport non-UTF-8 file names on Unix platforms.BUG #231:\nSwitch from block buffering to line buffering.BUG #241:\nSome error messages weren't suppressed when --no-messages was used."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.9",
+    "text_blocks": [
+      "Bug fixes:",
+      "BUG #226:\nFile paths explicitly given on the command line weren't searched in parallel.\n(This was a regression in 0.2.7.)BUG #228:\nIf a directory was given to --ignore-file, ripgrep's memory usage would\ngrow without bound."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.8",
+    "text_blocks": [
+      "Bug fixes:",
+      "Fixed a bug with the SIMD/AVX features for using bytecount in commit\n4ca15a."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.7",
+    "text_blocks": [
+      "Performance improvements:",
+      "PERF #223:\nAdded a parallel recursive directory iterator. This results in major\nperformance improvements on large repositories.PERF #11:\nripgrep now uses the bytecount library for counting new lines. In some\ncases, ripgrep runs twice as fast. Use\nRUSTFLAGS=\"-C target-cpu=native\" cargo build --release --features 'simd-accel avx-accel'\nto get the fastest possible binary.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for Agda, Tex, Taskpaper, Markdown,\nasciidoc, textile, rdoc, org, creole, wiki, pod, C#, PDF, C, C++.FEATURE #149:\nAdd a new --no-messages flag that suppresses error messages.\nNote that rg foo 2> /dev/null also works.FEATURE #159:\nAdd a new -m/--max-count flag that limits the total number of matches\nprinted for each file searched.",
+      "Bug fixes:",
+      "BUG #199:\nFixed a bug where -S/--smart-case wasn't being applied correctly to\nliteral optimizations.BUG #203:\nMention the full name, ripgrep, in more places. It now appears in\nthe output of --help and --version. The repository URL is now also\nin the output of --help and the man page.BUG #215:\nInclude small note about how to search for a pattern that starts with a -."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.6",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for Fish.",
+      "Bug fixes:",
+      "BUG #206:\nFixed a regression with -g/--glob flag in 0.2.5."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.5",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for Groovy, Handlebars, Tcl, zsh and\nPython.FEATURE #9:\nSupport global gitignore config and .git/info/exclude files.FEATURE #45:\nAdd --ignore-file flag for specifying additional ignore files.FEATURE #202:\nIntroduce a new\nignore\ncrate that encapsulates all of ripgrep's gitignore matching logic.",
+      "Bug fixes:",
+      "BUG #44:\nripgrep runs slowly when given lots of positional arguments that are\ndirectories.BUG #119:\nripgrep didn't reset terminal colors if it was interrupted by ^C.\nFixed in PR #187.BUG #184:\nFixed a bug related to interpreting gitignore files in parent directories."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.4",
+    "text_blocks": [
+      "SKIPPED."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.3",
+    "text_blocks": [
+      "Bug fixes:",
+      "BUG #164:\nFixes a segfault on macos builds.BUG #167:\nClarify documentation for --threads."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.2",
+    "text_blocks": [
+      "Packaging updates:",
+      "ripgrep is now in homebrew-core. brew install ripgrep will do the trick\non a Mac.ripgrep is now in the Archlinux community repository.\npacman -S ripgrep will do the trick on Archlinux.Support has been discontinued for i686-darwin.Glob matching has been moved out into its own crate:\nglobset.",
+      "Feature enhancements:",
+      "Added or improved file type filtering for CMake, config, Jinja, Markdown,\nSpark.FEATURE #109:\nAdd a --max-depth flag for directory traversal.FEATURE #124:\nAdd -s/--case-sensitive flag. Overrides --smart-case.FEATURE #139:\nThe ripgrep repo is now a Homebrew tap. This is useful for installing\nSIMD accelerated binaries, which aren't available in homebrew-core.",
+      "Bug fixes:",
+      "BUG #87,\nBUG #127,\nBUG #131:\nVarious issues related to glob matching.BUG #116:\n--quiet should stop search after first match.BUG #121:\n--color always should show colors, even when --vimgrep is used.BUG #122:\nColorize file path at beginning of line.BUG #134:\nProcessing a large ignore file (thousands of globs) was very slow.BUG #137:\nAlways follow symlinks when given as an explicit argument.BUG #147:\nClarify documentation for --replace."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.1",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for Clojure and SystemVerilog.FEATURE #89:\nAdd a --null flag that outputs a NUL byte after every file path.",
+      "Bug fixes:",
+      "BUG #98:\nFix a bug in single threaded mode when if opening a file failed, ripgrep\nquit instead of continuing the search.BUG #99:\nFix another bug in single threaded mode where empty lines were being printed\nby mistake.BUG #105:\nFix an off-by-one error with --column.BUG #106:\nFix a bug where a whitespace only line in a gitignore file caused ripgrep\nto panic (i.e., crash)."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/CHANGELOG.md",
+    "header": "0.2.0",
+    "text_blocks": [
+      "Feature enhancements:",
+      "Added or improved file type filtering for VB, R, F#, Swift, Nim, JavaScript,\nTypeScriptFEATURE #20:\nAdds a --no-filename flag.FEATURE #26:\nAdds --files-with-matches flag. Like --count, but only prints file paths\nand doesn't need to count every match.FEATURE #40:\nSwitch from using .rgignore to .ignore. Note that .rgignore is\nstill supported, but deprecated.FEATURE #68:\nAdd --no-ignore-vcs flag that ignores .gitignore but not .ignore.FEATURE #70:\nAdd -S/--smart-case flag (but is disabled by default).FEATURE #80:\nAdd support for {foo,bar} globs.",
+      "Many many bug fixes. Thanks every for reporting these and helping make\nripgrep better! (Note that I haven't captured every tracking issue here,\nsome were closed as duplicates.)",
+      "BUG #8:\nDon't use an intermediate buffer when --threads=1. (Permits constant memory\nusage.)BUG #15:\nImproves the documentation for --type-add.BUG #16,\nBUG #49,\nBUG #50,\nBUG #65:\nSome gitignore globs were being treated as anchored when they weren't.BUG #18:\n--vimgrep reported incorrect column number.BUG #19:\nripgrep was hanging waiting on stdin in some Windows terminals. Note that\nthis introduced a new bug:\n#94.BUG #21:\nRemoves leading ./ when printing file paths.BUG #22:\nRunning rg --help | echo caused rg to panic.BUG #24:\nClarify the central purpose of rg in its usage message.BUG #25:\nAnchored gitignore globs weren't applied in subdirectories correctly.BUG #30:\nGlobs like foo/** should match contents of foo, but not foo itself.BUG #35,\nBUG #81:\nWhen automatically detecting stdin, only read if it's a file or a fifo.\ni.e., ignore stdin in rg foo < /dev/null.BUG #36:\nDon't automatically pick memory maps on MacOS. Ever.BUG #38:\nTrailing whitespace in gitignore wasn't being ignored.BUG #43:\n--glob didn't work with directories.BUG #46:\nUse one fewer worker thread than what is provided on CLI.BUG #47:\n--help/--version now work even if other options are set.BUG #55:\nripgrep was refusing to search /proc/cpuinfo. Fixed by disabling memory\nmaps for files with zero size.BUG #64:\nThe first path given with --files set was ignored.BUG #67:\nSometimes whitelist globs like !/dir weren't interpreted as anchored.BUG #77:\nWhen -q/--quiet flag was passed, ripgrep kept searching even after a match\nwas found.BUG #90:\nPermit whitelisting hidden files.BUG #93:\nripgrep was extracting an erroneous inner literal from a repeated pattern."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/benchsuite/runs/2022-12-16-archlinux-duff/README.md",
+    "header": "(preamble)",
+    "text_blocks": [
+      "This directory contains updated benchmarks as of 2022-12-16. They were captured\nvia the benchsuite script at benchsuite/benchsuite from the root of this\nrepository. The command that was run:",
+      "The versions of each tool are as follows:",
+      "The version of ripgrep used was compiled from source on commit 7f23cd63:",
+      "This was run on a machine with an Intel i9-12900K with 128GB of memory."
+    ],
+    "code_blocks": [
+      "$ ./benchsuite \\\n      --dir /dev/shm/benchsuite \\\n      --raw runs/2022-12-16-archlinux-duff/raw.csv \\\n      | tee runs/2022-12-16-archlinux-duff/summary",
+      "$ rg --version\nripgrep 13.0.0 (rev 87c4a2b4b1)\n-SIMD -AVX (compiled)\n+SIMD +AVX (runtime)\n\n$ grep -V\ngrep (GNU grep) 3.8\n\n$ ag -V\nag version 2.2.0\n\nFeatures:\n  +jit +lzma +zlib\n\n$ git --version\ngit version 2.39.0\n\n$ ugrep --version\nugrep 3.9.2 x86_64-pc-linux-gnu +avx2 +pcre2jit +zlib +bzip2 +lzma +lz4 +zstd\nLicense BSD-3-Clause: <https://opensource.org/licenses/BSD-3-Clause>\nWritten by Robert van Engelen and others: <https://github.com/Genivia/ugrep>",
+      "$ cargo build --release --features 'pcre2'"
+    ]
+  },
+  {
+    "file_path": "ripgrep/benchsuite/runs/2020-10-14-archlinux-frink/README.md",
+    "header": "(preamble)",
+    "text_blocks": [
+      "This directory contains updated benchmarks as of 2020-10-14. They were captured\nvia the benchsuite script at benchsuite/benchsuite from the root of this\nrepository. The command that was run:",
+      "The versions of each tool are as follows:",
+      "The version of ripgrep used was compiled from source on commit def993bad1:"
+    ],
+    "code_blocks": [
+      "$ ./benchsuite \\\n      --dir /tmp/benchsuite \\\n      --raw runs/2020-10-14-archlinux-frink/raw.csv \\\n      --warmup-iter 1 \\\n      --bench-iter 5",
+      "$ rg --version\nripgrep 12.1.1 (rev def993bad1)\n-SIMD -AVX (compiled)\n+SIMD +AVX (runtime)\n\n$ grep -V\ngrep (GNU grep) 3.4\n\n$ ag -V\nag version 2.2.0\n\nFeatures:\n  +jit +lzma +zlib\n\n$ git --version\ngit version 2.28.0\n\n$ ugrep --version\nugrep 3.0.2 x86_64-pc-linux-gnu +avx2 +pcre2_jit +zlib +bzip2 +lzma +lz4\nLicense BSD-3-Clause: <https://opensource.org/licenses/BSD-3-Clause>\nWritten by Robert van Engelen and others: <https://github.com/Genivia/ugrep>",
+      "$ cargo build --release --features 'pcre2'"
+    ]
+  },
+  {
+    "file_path": "ripgrep/FAQ.md",
+    "header": "FAQ",
+    "text_blocks": [
+      "Does ripgrep support configuration files?What's changed in ripgrep recently?When is the next release?Does ripgrep have a man page?Does ripgrep have support for shell auto-completion?How can I get results in a consistent order?How do I search files that aren't UTF-8?How do I search compressed files?How do I search over multiple lines?How do I use lookaround and/or backreferences?How do I configure ripgrep's colors?How do I enable true colors on Windows?How do I stop ripgrep from messing up colors when I kill it?Why does using a leading / on Windows fail?How do I get around the regex size limit?How do I make the -f/--file flag faster?How do I make the output look like The Silver Searcher's output?Why does ripgrep get slower when I enabled PCRE2 regexes?When I run rg, why does it execute some other command?How do I create an alias for ripgrep on Windows?How do I create a PowerShell profile?How do I pipe non-ASCII content to ripgrep on Windows?How can I search and replace with ripgrep?How is ripgrep licensed?Can ripgrep replace grep?What does the \"rip\" in ripgrep mean?How can I donate to ripgrep or its maintainers?",
+      "Yes. See the\nguide's section on configuration files.",
+      "Please consult ripgrep's CHANGELOG.",
+      "ripgrep is a project whose contributors are volunteers. A release schedule\nadds undue stress to said volunteers. Therefore, releases are made on a best\neffort basis and no dates will ever be given.",
+      "An exception to this can be high impact bugs. If a ripgrep release contains\na significant regression, then there will generally be a strong push to get a\npatch release out with a fix. However, no promises are made.",
+      "Yes. If you installed ripgrep through a package manager on a Unix system, then\nit would have ideally been installed for you in the proper location. In which\ncase, man rg should just work.",
+      "Otherwise, you can ask ripgrep to generate the man page:",
+      "Or, if your version of man supports the -l/--local-file flag, then this\nwill suffice:",
+      "Note that the man page's documentation for options is equivalent to the output\nshown in rg --help. To see more condensed documentation (one line per flag),\nrun rg -h.",
+      "The man page is also included in all\nripgrep binary releases.",
+      "Yes! If you installed ripgrep through a package manager on a Unix system, then\nthe shell completion files included in the release archive should have been\ninstalled for you automatically. If not, you can generate completions using\nripgrep's command line interface.",
+      "For bash:",
+      "For fish:",
+      "For zsh, the recommended approach is:",
+      "And then add $HOME/.zsh-complete to your fpath in, e.g., your\n$HOME/.zshrc file:",
+      "Or if you'd prefer to load and generate completions at the same time, you can\nadd the following to your $HOME/.zshrc file:",
+      "Note though that while this approach is easier to setup, is generally slower\nthan the previous method, and will add more time to loading your shell prompt.",
+      "For PowerShell, create the completions:",
+      "And then add . _rg.ps1 to your PowerShell\nprofile\n(note the leading period). If the _rg.ps1 file is not on your PATH, do\n. /path/to/_rg.ps1 instead.",
+      "By default, ripgrep uses parallelism to execute its search because this makes\nthe search much faster on most modern systems. This in turn means that ripgrep\nhas a non-deterministic aspect to it, since the interleaving of threads during\nthe execution of the program is itself non-deterministic. This has the effect\nof printing results in a somewhat arbitrary order, and this order can change\nfrom run to run of ripgrep.",
+      "The only way to make the order of results consistent is to ask ripgrep to\nsort the output. Currently, this will disable all parallelism. (On smaller\nrepositories, you might not notice much of a performance difference!) You\ncan achieve this with the --sort path flag.",
+      "There is more discussion on this topic here:\nhttps://github.com/BurntSushi/ripgrep/issues/152",
+      "See the guide's section on file encoding.",
+      "ripgrep's -z/--search-zip flag will cause it to search compressed files\nautomatically. Currently, this supports gzip, bzip2, xz, lzma, lz4, Brotli and\nZstd. Each of these requires the corresponding gzip, bzip2, xz,\nlz4, brotli and zstd binaries to be installed on your system. (That is,\nripgrep does decompression by shelling out to another process.)",
+      "ripgrep currently does not search archive formats, so *.tar.gz files, for\nexample, are skipped.",
+      "The -U/--multiline flag enables ripgrep to report results that span over\nmultiple lines.",
+      "ripgrep's default regex engine does not support lookaround or backreferences.\nThis is primarily because the default regex engine is implemented using finite\nstate machines in order to guarantee a linear worst case time complexity on all\ninputs. Backreferences are not possible to implement in this paradigm, and\nlookaround appears difficult to do efficiently.",
+      "However, ripgrep optionally supports using PCRE2 as the regex engine instead of\nthe default one based on finite state machines. You can enable PCRE2 with the\n-P/--pcre2 flag. For example, in the root of the ripgrep repo, you can easily\nfind all palindromes:",
+      "If your version of ripgrep doesn't support PCRE2, then you'll get an error\nmessage when you try to use the -P/--pcre2 flag:",
+      "Most of the releases distributed by the ripgrep project here on GitHub will\ncome bundled with PCRE2 enabled. If you installed ripgrep through a different\nmeans (like your system's package manager), then please reach out to the\nmaintainer of that package to see whether it's possible to enable the PCRE2\nfeature.",
+      "ripgrep has two flags related to colors:",
+      "--color controls when to use colors.--colors controls which colors to use.",
+      "The --color flag accepts one of the following possible values: never,\nauto, always or ansi. The auto value is the default and will cause\nripgrep to only enable colors when it is printing to a terminal. But if you\npipe ripgrep to a file or some other process, then it will suppress colors.",
+      "The --colors flag is a bit more complicated. The general format is:",
+      "{type} should be one of path, line, column or match. Each of these\ncorrespond to the four different types of things that ripgrep will add color\nto in its output. Select the type whose color you want to change.{attribute} should be one of fg, bg or style, corresponding to\nforeground color, background color, or miscellaneous styling (such as whether\nto bold the output or not).{value} is determined by the value of {attribute}. If\n{attribute} is style, then {value} should be one of nobold,\nbold, nointense, intense, nounderline, underline, noitalic or\nitalic. If {attribute} is fg or bg, then {value} should be a color.",
+      "A color is specified by either one of eight of English names, a single 256-bit\nnumber or an RGB triple (with over 16 million possible values, or \"true\ncolor\").",
+      "The color names are red, blue, green, cyan, magenta, yellow,\nwhite or black.",
+      "A single 256-bit number is a value in the range 0-255 (inclusive). It can\neither be in decimal format (e.g., 62) or hexadecimal format (e.g., 0x3E).",
+      "An RGB triple corresponds to three numbers (decimal or hexadecimal) separated\nby commas.",
+      "As a special case, --colors '{type}:none' will clear all colors and styles\nassociated with {type}, which lets you start with a clean slate (instead of\nbuilding on top of ripgrep's default color settings).",
+      "Here's an example that highlights the matches with a nice blue background with\nbolded white text:",
+      "Colors are an ideal candidate to set in your\nconfiguration file. See the\nquestion on emulating The Silver Searcher's output style\nfor an example specific to colors.",
+      "First, see the previous question's\nanswer on configuring colors.",
+      "Secondly, coloring on Windows is a bit complicated. If you're using a terminal\nlike Cygwin, then it's likely true color support already works out of the box.\nHowever, if you are using a normal Windows console (cmd or PowerShell) and\na version of Windows prior to 10, then there is no known way to get true\ncolor support. If you are on Windows 10 and using a Windows console, then\ntrue colors should work out of the box with one caveat: you might need to\nclear ripgrep's default color settings first. That is, instead of this:",
+      "you should do this",
+      "This is because ripgrep might set the default style for match to bold, and\nit seems like Windows 10's VT100 support doesn't permit bold and true color\nANSI escapes to be used simultaneously. The work-around above will clear\nripgrep's default styling, allowing you to craft it exactly as desired.",
+      "Type in color in cmd.exe (Command Prompt) and echo -ne \"\\033[0m\" on\nUnix-like systems to restore your original foreground color.",
+      "In PowerShell, you can add the following code to your profile which will\nrestore the original foreground color when Reset-ForegroundColor is called.\nIncluding the Set-Alias line will allow you to call it with simply color.",
+      "PR #187 fixed this, and it\nwas later deprecated in\n#281. A full explanation is\navailable\nhere.",
+      "If you're using cygwin on Windows and try to search for a pattern beginning\nwith a /, then it's possible that cygwin is mangling that pattern without\nyour knowledge. For example, if you tried running rg /foo in a cygwin shell\non Windows, then cygwin might mistakenly perform path translation on /foo,\nwhich would result in rg C:/msys64/foo being searched instead.",
+      "You can fix this in one of three ways:",
+      "Stop using cygwin.Escape the leading slash with an additional slash. e.g., rg //foo.Temporarily disable path translation by setting MSYS_NO_PATHCONV=1. e.g.,\nMSYS_NO_PATHCONV=1 rg /foo.",
+      "For more details, see https://github.com/BurntSushi/ripgrep/issues/1277",
+      "If you've given ripgrep a particularly large pattern (or a large number of\nsmaller patterns), then it is possible that it will fail to compile because it\nhit a pre-set limit. For example:",
+      "(Note: \\pL{1000} may look small, but \\pL is the character class containing\nall Unicode letters, which is quite large. And it's repeated 1000 times.)",
+      "In this case, you can work around by simply increasing the limit:",
+      "Increasing the limit to 1GB does not necessarily mean that ripgrep will use\nthat much memory. The limit just says that it's allowed to (approximately) use\nthat much memory for constructing the regular expression.",
+      "The -f/--file permits one to give a file to ripgrep which contains a pattern\non each line. ripgrep will then report any line that matches any of the\npatterns.",
+      "If this pattern file gets too big, then it is possible ripgrep will slow down\ndramatically. Typically this is because an internal cache is too small, and\nwill cause ripgrep to spill over to a slower but more robust regular expression\nengine. If this is indeed the problem, then it is possible to increase this\ncache and regain speed. The cache can be controlled via the --dfa-size-limit\nflag. For example, using --dfa-size-limit 1G will set the cache size to 1GB.\n(Note that this doesn't mean ripgrep will use 1GB of memory automatically, but\nit will allow the regex engine to if it needs to.)",
+      "Use the --colors flag, like so:",
+      "Alternatively, add your color configuration to your ripgrep config file (which\nis activated by setting the RIPGREP_CONFIG_PATH environment variable to point\nto your config file). For example:",
+      "When you use the --pcre2 (-P for short) flag, ripgrep will use the PCRE2\nregex engine instead of the default. Both regex engines are quite fast,\nbut PCRE2 provides a number of additional features such as look-around and\nbackreferences that many enjoy using. This is largely because PCRE2 uses\na backtracking implementation where as the default regex engine uses a finite\nautomaton based implementation. The former provides the ability to add lots of\nbells and whistles over the latter, but the latter executes with worst case\nlinear time complexity.",
+      "With that out of the way, if you've used -P with ripgrep, you may have\nnoticed that it can be slower. The reasons for why this is are quite complex,\nand they are complex because the optimizations that ripgrep uses to implement\nfast search are complex.",
+      "The task ripgrep has before it is somewhat simple; all it needs to do is search\na file for occurrences of some pattern and then print the lines containing\nthose occurrences. The problem lies in what is considered a valid match and how\nexactly we read the bytes from a file.",
+      "In terms of what is considered a valid match, remember that ripgrep will only\nreport matches spanning a single line by default. The problem here is that\nsome patterns can match across multiple lines, and ripgrep needs to prevent\nthat from happening. For example, foo\\sbar will match foo\\nbar. The most\nobvious way to achieve this is to read the data from a file, and then apply\nthe pattern search to that data for each line. The problem with this approach\nis that it can be quite slow; it would be much faster to let the pattern\nsearch across as much data as possible. It's faster because it gets rid of the\noverhead of finding the boundaries of every line, and also because it gets rid\nof the overhead of starting and stopping the pattern search for every single\nline. (This is operating under the general assumption that matching lines are\nmuch rarer than non-matching lines.)",
+      "It turns out that we can use the faster approach by applying a very simple\nrestriction to the pattern: statically prevent the pattern from matching\nthrough a \\n character. Namely, when given a pattern like foo\\sbar,\nripgrep will remove \\n from the \\s character class automatically. In some\ncases, a simple removal is not so easy. For example, ripgrep will return an\nerror when your pattern includes a \\n literal:",
+      "So what does this have to do with PCRE2? Well, ripgrep's default regex engine\nexposes APIs for doing syntactic analysis on the pattern in a way that makes\nit quite easy to strip \\n from the pattern (or otherwise detect it and report\nan error if stripping isn't possible). PCRE2 seemingly does not provide a\nsimilar API, so ripgrep does not do any stripping when PCRE2 is enabled. This\nforces ripgrep to use the \"slow\" search strategy of searching each line\nindividually.",
+      "OK, so if enabling PCRE2 slows down the default method of searching because it\nforces matches to be limited to a single line, then why is PCRE2 also sometimes\nslower when performing multiline searches? Well, that's because there are\nmultiple reasons why using PCRE2 in ripgrep can be slower than the default\nregex engine. This time, blame PCRE2's Unicode support, which ripgrep enables\nby default. In particular, PCRE2 cannot simultaneously enable Unicode support\nand search arbitrary data. That is, when PCRE2's Unicode support is enabled,\nthe data must be valid UTF-8 (to do otherwise is to invoke undefined\nbehavior). This is in contrast to ripgrep's default regex engine, which can\nenable Unicode support and still search arbitrary data. ripgrep's default\nregex engine simply won't match invalid UTF-8 for a pattern that can otherwise\nonly match valid UTF-8. Why doesn't PCRE2 do the same? This author isn't\nfamiliar with its internals, so we can't comment on it here.",
+      "The bottom line here is that we can't enable PCRE2's Unicode support without\nsimultaneously incurring a performance penalty for ensuring that we are\nsearching valid UTF-8. In particular, ripgrep will transcode the contents\nof each file to UTF-8 while replacing invalid UTF-8 data with the Unicode\nreplacement codepoint. ripgrep then disables PCRE2's own internal UTF-8\nchecking, since we've guaranteed the data we hand it will be valid UTF-8. The\nreason why ripgrep takes this approach is because if we do hand PCRE2 invalid\nUTF-8, then it will report a match error if it comes across an invalid UTF-8\nsequence. This is not good news for ripgrep, since it will stop it from\nsearching the rest of the file, and will also print potentially undesirable\nerror messages to users.",
+      "All right, the above is a lot of information to swallow if you aren't already\nfamiliar with ripgrep internals. Let's make this concrete with some examples.\nFirst, let's get some data big enough to magnify the performance differences:",
+      "To search this data, we will use the pattern ^\\w{42}$, which contains exactly\none hit in the file and has no literals. Having no literals is important,\nbecause it ensures that the regex engine won't use literal optimizations to\nspeed up the search. In other words, it lets us reason coherently about the\nactual task that the regex engine is performing.",
+      "Let's now walk through a few examples in light of the information above. First,\nlet's consider the default search using ripgrep's default regex engine and\nthen the same search with PCRE2:",
+      "In this particular example, both pattern searches are using a Unicode aware\n\\w character class and both are counting lines in order to report line\nnumbers. The key difference here is that the first search will not search\nline by line, but the second one will. We can observe which strategy ripgrep\nuses by passing the --trace flag:",
+      "The first says it is using the \"fast line searcher\" where as the latter says\nit is using the \"slow line searcher.\" The latter also shows that we are\ndecoding the contents of the file, which also impacts performance.",
+      "Interestingly, in this case, the pattern does not match a \\n and the file\nwe're searching is valid UTF-8, so neither the slow line-by-line search\nstrategy nor the decoding are necessary. We could fix the former issue with\nbetter PCRE2 introspection APIs. We can actually fix the latter issue with\nripgrep's --no-encoding flag, which prevents the automatic UTF-8 decoding,\nbut will enable PCRE2's own UTF-8 validity checking. Unfortunately, it's slower\nin my build of ripgrep:",
+      "(Tip: use the --trace flag to verify that no decoding in ripgrep is\nhappening.)",
+      "A possible reason why PCRE2's UTF-8 checking is slower is because it might\nnot be better than the highly optimized UTF-8 checking routines found in the\nencoding_rs library, which is what\nripgrep uses for UTF-8 decoding. Moreover, my build of ripgrep enables\nencoding_rs's SIMD optimizations, which may be in play here.",
+      "Also, note that using the --no-encoding flag can cause PCRE2 to report\ninvalid UTF-8 errors, which causes ripgrep to stop searching the file:",
+      "All right, so at this point, you might think that we could remove the penalty\nfor line-by-line searching by enabling multiline search. After all, our\nparticular pattern can't match across multiple lines anyway, so we'll still get\nthe results we want. Let's try it:",
+      "Search times remain the same with the default regex engine, but the PCRE2\nsearch gets slower. What happened? The secrets can be revealed with the\n--trace flag once again. In the former case, ripgrep actually detects that\nthe pattern can't match across multiple lines, and so will fall back to the\n\"fast line search\" strategy as with our search without -U.",
+      "However, for PCRE2, things are much worse. Namely, since Unicode mode is still\nenabled, ripgrep is still going to decode UTF-8 to ensure that it hands only\nvalid UTF-8 to PCRE2. Unfortunately, one key downside of multiline search is\nthat ripgrep cannot do it incrementally. Since matches can be arbitrarily long,\nripgrep actually needs the entire file in memory at once. Normally, we can use\na memory map for this, but because we need to UTF-8 decode the file before\nsearching it, ripgrep winds up reading the entire contents of the file on to\nthe heap before executing a search. Owch.",
+      "OK, so Unicode is killing us here. The file we're searching is mostly ASCII,\nso maybe we're OK with missing some data. (Try rg '[\\w--\\p{ascii}]' to see\nnon-ASCII word characters that an ASCII-only \\w character class would miss.)\nWe can disable Unicode in both searches, but this is done differently depending\non the regex engine we use:",
+      "For the most part, ripgrep's default regex engine performs about the same.\nPCRE2 does improve a little bit, and is now almost as fast as the default\nregex engine. If you look at the output of --trace, you'll see that ripgrep\nwill no longer perform UTF-8 decoding, but it does still use the slow\nline-by-line searcher.",
+      "At this point, we can combine all of our insights above: let's try to get off\nof the slow line-by-line searcher by enabling multiline mode, and let's stop\nUTF-8 decoding by disabling Unicode support:",
+      "Ah, there's PCRE2's JIT shining! ripgrep's default regex engine once again\nremains about the same, but PCRE2 no longer needs to search line-by-line and it\nno longer needs to do any kind of UTF-8 checks. This allows the file to get\nmemory mapped and passed right through PCRE2's JIT at impressive speeds. (As\na brief and interesting historical note, the configuration of \"memory map +\nmultiline + no-Unicode\" is exactly the configuration used by The Silver\nSearcher. This analysis perhaps sheds some reasoning as to why that\nconfiguration is useful!)",
+      "In summary, if you want PCRE2 to go as fast as possible and you don't care\nabout Unicode and you don't care about matches possibly spanning across\nmultiple lines, then enable multiline mode with -U and disable PCRE2's\nUnicode support with the --no-pcre2-unicode flag.",
+      "Caveat emptor: This author is not a PCRE2 expert, so there may be APIs that can\nimprove performance that the author missed. Similarly, there may be alternative\ndesigns for a searching tool that are more amenable to how PCRE2 works.",
+      "It's likely that you have a shell alias or even another tool called rg which\nis interfering with ripgrep. Run which rg to see what it is.",
+      "(Notably, the Rails plug-in for\nOh My Zsh sets\nup an rg alias for rails generate.)",
+      "Problems like this can be resolved in one of several ways:",
+      "If you're using the OMZ Rails plug-in, disable it by editing the plugins\narray in your zsh configuration.Temporarily bypass an existing rg alias by calling ripgrep as\ncommand rg, \\rg, or 'rg'.Temporarily bypass an existing alias or another tool named rg by calling\nripgrep by its full path (e.g., /usr/bin/rg or /usr/local/bin/rg).Permanently disable an existing rg alias by adding unalias rg to the\nbottom of your shell configuration file (e.g., .bash_profile or .zshrc).Give ripgrep its own alias that doesn't conflict with other tools/aliases by\nadding a line like the following to the bottom of your shell configuration\nfile: alias ripgrep='command rg'.",
+      "Often you can find a need to make alias for commands you use a lot that set\ncertain flags. But PowerShell function aliases do not behave like your typical\nlinux shell alias. You always need to propagate arguments and stdin input.\nBut it cannot be done simply as\nfunction grep() { $input | rg.exe --hidden $args }",
+      "Use below example as reference to how setup alias in PowerShell.",
+      "PowerShell special variables:",
+      "input - is powershell stdin object that allows you to access its content.args - is array of arguments passed to this function.",
+      "This alias checks whether there is stdin input and propagates only if there\nis some lines. Otherwise empty $input will make powershell to trigger rg to\nsearch empty stdin.",
+      "To customize powershell on start-up, there is a special PowerShell script that\nhas to be created. In order to find its location, type $profile.\nSee\nMicrosoft's documentation\nfor more details.",
+      "Any PowerShell code in this file gets evaluated at the start of console. This\nway you can have own aliases to be created at start.",
+      "When piping input into native executables in PowerShell, the encoding of the\ninput is controlled by the $OutputEncoding variable. By default, this is set\nto US-ASCII, and any characters in the pipeline that don't have encodings in\nUS-ASCII are converted to ? (question mark) characters.",
+      "To change this setting, set $OutputEncoding to a different encoding, as\nrepresented by a .NET encoding object. Some common examples are below. The\nvalue of this variable is reset when PowerShell restarts, so to make this\nchange take effect every time PowerShell is started add a line setting the\nvariable into your PowerShell profile.",
+      "Example $OutputEncoding settings:",
+      "UTF-8 without BOM: $OutputEncoding = [System.Text.UTF8Encoding]::new()The console's output encoding:\n$OutputEncoding = [System.Console]::OutputEncoding",
+      "If you continue to have encoding problems, you can also force the encoding\nthat the console will use for printing to UTF-8 with\n[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8. This\nwill also reset when PowerShell is restarted, so you can add that line\nto your profile as well if you want to make the setting permanent.",
+      "Using ripgrep alone, you can't. ripgrep is a search tool that will never\ntouch your files. However, the output of ripgrep can be piped to other tools\nthat do modify files on disk. See\nthis issue for more\ninformation.",
+      "sed is one such tool that can modify files on disk. sed can take a filename\nand a substitution command to search and replace in the specified file.\nFiles containing matching patterns can be provided to sed using",
+      "The output of this command is a list of filenames that contain a match for\nthe foo pattern.",
+      "This list can be piped into xargs, which will split the filenames from\nstandard input into arguments for the command following xargs. You can use this\ncombination to pipe a list of filenames into sed for replacement. For example:",
+      "will replace all instances of 'foo' with 'bar' in the files in which\nripgrep finds the foo pattern. The -i flag to sed indicates that you are\nediting files in place, and s/foo/bar/g says that you are performing a\nsubstitution of the pattern foo for bar, and that you are doing this\nsubstitution globally (all occurrences of the pattern in each file).",
+      "Note: the above command assumes that you are using GNU sed. If you are using\nBSD sed (the default on macOS and FreeBSD) then you must modify the above\ncommand to be the following:",
+      "The -i flag in BSD sed requires a file extension to be given to make backups\nfor all modified files. Specifying the empty string prevents file backups from\nbeing made.",
+      "Finally, if any of your file paths contain whitespace in them, then you might\nneed to delimit your file paths with a NUL terminator. This requires telling\nripgrep to output NUL bytes between each path, and telling xargs to read paths\ndelimited by NUL bytes:",
+      "To learn more about sed, see the sed manual\nhere.",
+      "Additionally, Facebook has a tool called\nfastmod\nthat uses some of the same libraries as ripgrep and might provide a more\nergonomic search-and-replace experience.",
+      "ripgrep is dual licensed under the\nUnlicense\nand MIT licenses. Specifically, you may use ripgrep under the terms of either\nlicense.",
+      "The reason why ripgrep is dual licensed this way is two-fold:",
+      "I, as ripgrep's author, would like to participate in a small bit of\nideological activism by promoting the Unlicense's goal: to disclaim\ncopyright monopoly interest.I, as ripgrep's author, would like as many people to use ripgrep as\npossible. Since the Unlicense is not a proven or well known license, ripgrep\nis also offered under the MIT license, which is ubiquitous and accepted by\nalmost everyone.",
+      "More specifically, ripgrep and all its dependencies are compatible with this\nlicensing choice. In particular, ripgrep's dependencies (direct and transitive)\nwill always be limited to permissive licenses. That is, ripgrep will never\ndepend on code that is not permissively licensed. This means rejecting any\ndependency that uses a copyleft license such as the GPL, LGPL, MPL or any of\nthe Creative Commons ShareAlike licenses. Whether the license is \"weak\"\ncopyleft or not does not matter; ripgrep will not depend on it.",
+      "Yes and no.",
+      "If, upon hearing that \"ripgrep can replace grep,\" you actually hear, \"ripgrep\ncan be used in every instance grep can be used, in exactly the same way, for\nthe same use cases, with exactly the same bug-for-bug behavior,\" then no,\nripgrep trivially cannot replace grep. Moreover, ripgrep will never replace\ngrep.",
+      "If, upon hearing that \"ripgrep can replace grep,\" you actually hear, \"ripgrep\ncan replace grep in some cases and not in other use cases,\" then yes, that is\nindeed true!",
+      "Let's go over some of those use cases in favor of ripgrep. Some of these may\nnot apply to you. That's OK. There may be other use cases not listed here that\ndo apply to you. That's OK too.",
+      "(For all claims related to performance in the following words, see my\nblog post\nintroducing ripgrep.)",
+      "Are you frequently searching a repository of code? If so, ripgrep might be a\ngood choice since there's likely a good chunk of your repository that you\ndon't want to search. grep, can, of course, be made to filter files using\nrecursive search, and if you don't mind writing out the requisite --exclude\nrules or writing wrapper scripts, then grep might be sufficient. (I'm not\nkidding, I myself did this with grep for almost a decade before writing\nripgrep.) But if you instead enjoy having a search tool respect your\n.gitignore, then ripgrep might be perfect for you!Are you frequently searching non-ASCII text that is UTF-8 encoded? One of\nripgrep's key features is that it can handle Unicode features in your\npatterns in a way that tends to be faster than GNU grep. Unicode features\nin ripgrep are enabled by default; there is no need to configure your locale\nsettings to use ripgrep properly because ripgrep doesn't respect your locale\nsettings.Do you need to search UTF-16 files and you don't want to bother explicitly\ntranscoding them? Great. ripgrep does this for you automatically. No need\nto enable it.Do you need to search a large directory of large files? ripgrep uses\nparallelism by default, which tends to make it faster than a standard\ngrep -r search. However, if you're OK writing the occasional\nfind ./ -print0 | xargs -P8 -0 grep command, then maybe grep is good\nenough.",
+      "Here are some cases where you might not want to use ripgrep. The same caveats\nfor the previous section apply.",
+      "Are you writing portable shell scripts intended to work in a variety of\nenvironments? Great, probably not a good idea to use ripgrep! ripgrep has\nnowhere near the ubiquity of grep, so if you do use ripgrep, you might need\nto futz with the installation process more than you would with grep.Do you care about POSIX compatibility? If so, then you can't use ripgrep\nbecause it never was, isn't and never will be POSIX compatible.Do you hate tools that try to do something smart? If so, ripgrep is all about\nbeing smart, so you might prefer to just stick with grep.Is there a particular feature of grep you rely on that ripgrep either doesn't\nhave or never will have? If the former, file a bug report, maybe ripgrep can\ndo it! If the latter, well, then, just use grep.",
+      "When I first started writing ripgrep, I called it rep, intending it to be a\nshorter variant of grep. Soon after, I renamed it to xrep since rep\nwasn't obvious enough of a name for my taste. And also because adding x to\nanything always makes it better, right?",
+      "Before ripgrep's first public release, I decided that I didn't like xrep. I\nthought it was slightly awkward to type, and despite my previous praise of the\nletter x, I kind of thought it was pretty lame. Being someone who really\nlikes Rust, I wanted to call it \"rustgrep\" or maybe \"rgrep\" for short. But I\nthought that was just as lame, and maybe a little too in-your-face. But I\nwanted to continue using r so I could at least pretend Rust had something to\ndo with it.",
+      "I spent a couple of days trying to think of very short words that began with\nthe letter r that were even somewhat related to the task of searching. I\ndon't remember how it popped into my head, but \"rip\" came up as something that\nmeant \"fast,\" as in, \"to rip through your text.\" The fact that RIP is also\nan initialism for \"Rest in Peace\" (as in, \"ripgrep kills grep\") never really\ndawned on me. Perhaps the coincidence is too striking to believe that, but\nI didn't realize it until someone explicitly pointed it out to me after the\ninitial public release. I admit that I found it mildly amusing, but if I had\nrealized it myself before the public release, I probably would have pressed on\nand chose a different name. Alas, renaming things after a release is hard, so I\ndecided to mush on.",
+      "Given the fact that\nripgrep never was, is or will be a 100% drop-in replacement for\ngrep,\nripgrep is neither actually a \"grep killer\" nor was it ever intended to be. It\ncertainly does eat into some of its use cases, but that's nothing that other\ntools like ack or The Silver Searcher weren't already doing.",
+      "I welcome sponsorship.",
+      "Or if you'd prefer, donating to a charitable organization that you like would\nalso be most welcome. My favorites are:",
+      "The Internet ArchiveRails GirlsWikipedia"
+    ],
+    "code_blocks": [
+      "$ mkdir -p man/man1\n$ rg --generate man > man/man1/rg.1\n$ MANPATH=\"$PWD/man\" man rg",
+      "$ rg --generate man | man -l -",
+      "$ dir=\"$XDG_CONFIG_HOME/bash_completion\"\n$ mkdir -p \"$dir\"\n$ rg --generate complete-bash > \"$dir/rg.bash\"",
+      "$ dir=\"$XDG_CONFIG_HOME/fish/completions\"\n$ mkdir -p \"$dir\"\n$ rg --generate complete-fish > \"$dir/rg.fish\"",
+      "$ dir=\"$HOME/.zsh-complete\"\n$ mkdir -p \"$dir\"\n$ rg --generate complete-zsh > \"$dir/_rg\"",
+      "fpath=($HOME/.zsh-complete $fpath)",
+      "$ source <(rg --generate complete-zsh)",
+      "$ rg --generate complete-powershell > _rg.ps1",
+      "$ rg -P '(\\w{10})\\1'\ntests/misc.rs\n483:    cmd.arg(\"--max-filesize\").arg(\"44444444444444444444\");\nglobset/src/glob.rs\n1206:    matches!(match7, \"a*a*a*a*a*a*a*a*a\", \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\");",
+      "$ rg -P '(\\w{10})\\1'\nPCRE2 is not available in this build of ripgrep",
+      "--colors '{type}:{attribute}:{value}'",
+      "$ rg somepattern \\\n    --colors 'match:none' \\\n    --colors 'match:bg:0x33,0x66,0xFF' \\\n    --colors 'match:fg:white' \\\n    --colors 'match:style:bold'",
+      "$ rg somepattern --colors 'match:fg:0x33,0x66,0xFF'",
+      "$ rg somepattern --colors 'match:none' --colors 'match:fg:0x33,0x66,0xFF'",
+      "$OrigFgColor = $Host.UI.RawUI.ForegroundColor\nfunction Reset-ForegroundColor {\n\t$Host.UI.RawUI.ForegroundColor = $OrigFgColor\n}\nSet-Alias -Name color -Value Reset-ForegroundColor",
+      "$ rg '\\pL{1000}'\nCompiled regex exceeds size limit of 10485760 bytes.",
+      "$ rg '\\pL{1000}' --regex-size-limit 1G",
+      "rg --colors line:fg:yellow      \\\n   --colors line:style:bold     \\\n   --colors path:fg:green       \\\n   --colors path:style:bold     \\\n   --colors match:fg:black      \\\n   --colors match:bg:yellow     \\\n   --colors match:style:nobold  \\\n   foo",
+      "$ cat $HOME/.config/ripgrep/rc\n--colors=line:fg:yellow\n--colors=line:style:bold\n--colors=path:fg:green\n--colors=path:style:bold\n--colors=match:fg:black\n--colors=match:bg:yellow\n--colors=match:style:nobold\n$ RIPGREP_CONFIG_PATH=$HOME/.config/ripgrep/rc rg foo",
+      "$ rg '\\n'\nthe literal '\"\\n\"' is not allowed in a regex",
+      "$ curl -O 'https://burntsushi.net/stuff/subtitles2016-sample.gz'\n$ gzip -d subtitles2016-sample\n$ md5sum subtitles2016-sample\ne3cb796a20bbc602fbfd6bb43bda45f5   subtitles2016-sample",
+      "$ time rg '^\\w{42}$' subtitles2016-sample\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m1.783s\nuser    0m1.731s\nsys     0m0.051s\n\n$ time rg -P '^\\w{42}$' subtitles2016-sample\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m2.458s\nuser    0m2.419s\nsys     0m0.038s",
+      "$ rg '^\\w{42}$' subtitles2016-sample --trace\n[... snip ...]\nTRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:622: Some(\"subtitles2016-sample\"): searching via memory map\nTRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:712: slice reader: searching via slice-by-line strategy\nTRACE|grep_searcher::searcher::core|grep-searcher/src/searcher/core.rs:61: searcher core: will use fast line searcher\n[... snip ...]\n\n$ rg -P '^\\w{42}$' subtitles2016-sample --trace\n[... snip ...]\nTRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:622: Some(\"subtitles2016-sample\"): searching via memory map\nTRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:705: slice reader: needs transcoding, using generic reader\nTRACE|grep_searcher::searcher|grep-searcher/src/searcher/mod.rs:685: generic reader: searching via roll buffer strategy\nTRACE|grep_searcher::searcher::core|grep-searcher/src/searcher/core.rs:63: searcher core: will use slow line searcher\n[... snip ...]",
+      "$ time rg -P '^\\w{42}$' subtitles2016-sample --no-encoding\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m3.074s\nuser    0m3.021s\nsys     0m0.051s",
+      "$ cat invalid-utf8\nfoobar\n\n$ xxd invalid-utf8\n00000000: 666f 6fff 6261 720a                      foo.bar.\n\n$ rg foo invalid-utf8\n1:foobar\n\n$ rg -P foo invalid-utf8\n1:foo�bar\n\n$ rg -P foo invalid-utf8 --no-encoding\ninvalid-utf8: PCRE2: error matching: UTF-8 error: illegal byte (0xfe or 0xff)",
+      "$ time rg -U '^\\w{42}$' subtitles2016-sample\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m1.803s\nuser    0m1.748s\nsys     0m0.054s\n\n$ time rg -P -U '^\\w{42}$' subtitles2016-sample\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m2.962s\nuser    0m2.246s\nsys     0m0.713s",
+      "$ time rg '(?-u)^\\w{42}$' subtitles2016-sample\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m1.714s\nuser    0m1.669s\nsys     0m0.044s\n\n$ time rg -P '^\\w{42}$' subtitles2016-sample --no-pcre2-unicode\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m1.997s\nuser    0m1.958s\nsys     0m0.037s",
+      "$ time rg -U '(?-u)^\\w{42}$' subtitles2016-sample\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m1.714s\nuser    0m1.655s\nsys     0m0.058s\n\n$ time rg -P -U '^\\w{42}$' subtitles2016-sample --no-pcre2-unicode\n21225780:EverymajordevelopmentinthehistoryofAmerica\n\nreal    0m1.121s\nuser    0m1.071s\nsys     0m0.048s",
+      "function grep {\n    $count = @($input).Count\n    $input.Reset()\n\n    if ($count) {\n        $input | rg.exe --hidden $args\n    }\n    else {\n        rg.exe --hidden $args\n    }\n}",
+      "rg foo --files-with-matches",
+      "rg foo --files-with-matches | xargs sed -i 's/foo/bar/g'",
+      "rg foo --files-with-matches | xargs sed -i '' 's/foo/bar/g'",
+      "rg foo --files-with-matches -0 | xargs -0 sed -i 's/foo/bar/g'"
+    ]
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "ripgrep (rg)",
+    "text_blocks": [
+      "ripgrep is a line-oriented search tool that recursively searches the current\ndirectory for a regex pattern. By default, ripgrep will respect gitignore rules\nand automatically skip hidden files/directories and binary files. (To disable\nall automatic filtering by default, use rg -uuu.) ripgrep has first class\nsupport on Windows, macOS and Linux, with binary downloads available for every\nrelease. ripgrep is similar to\nother popular search tools like The Silver Searcher, ack and grep.",
+      "Dual-licensed under MIT or the UNLICENSE."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "CHANGELOG",
+    "text_blocks": [
+      "Please see the CHANGELOG for a release history."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Documentation quick links",
+    "text_blocks": [
+      "InstallationUser GuideFrequently Asked QuestionsRegex syntaxConfiguration filesShell completionsBuildingTranslations"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Screenshot of search results",
+    "text_blocks": [],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Quick examples comparing tools",
+    "text_blocks": [
+      "This example searches the entire\nLinux kernel source tree\n(after running make defconfig && make -j8) for [A-Z]+_SUSPEND, where\nall matches must be words. Timings were collected on a system with an Intel\ni9-12900K 5.2 GHz.",
+      "Please remember that a single benchmark is never enough! See my\nblog post on ripgrep\nfor a very detailed comparison with more benchmarks and analysis.",
+      "| Tool | Command | Line count | Time |\n| ---- | ------- | ---------- | ---- |\n| ripgrep (Unicode) | rg -n -w '[A-Z]+_SUSPEND' | 536 | 0.082s (1.00x) |\n| hypergrep | hgrep -n -w '[A-Z]+_SUSPEND' | 536 | 0.167s (2.04x) |\n| git grep | git grep -P -n -w '[A-Z]+_SUSPEND' | 536 | 0.273s (3.34x) |\n| The Silver Searcher | ag -w '[A-Z]+_SUSPEND' | 534 | 0.443s (5.43x) |\n| ugrep | ugrep -r --ignore-files --no-hidden -I -w '[A-Z]+_SUSPEND' | 536 | 0.639s (7.82x) |\n| git grep | LC_ALL=C git grep -E -n -w '[A-Z]+_SUSPEND' | 536 | 0.727s (8.91x) |\n| git grep (Unicode) | LC_ALL=en_US.UTF-8 git grep -E -n -w '[A-Z]+_SUSPEND' | 536 | 2.670s (32.70x) |\n| ack | ack -w '[A-Z]+_SUSPEND' | 2677 | 2.935s (35.94x) |",
+      "Here's another benchmark on the same corpus as above that disregards gitignore\nfiles and searches with a whitelist instead. The corpus is the same as in the\nprevious benchmark, and the flags passed to each command ensure that they are\ndoing equivalent work:",
+      "| Tool | Command | Line count | Time |\n| ---- | ------- | ---------- | ---- |\n| ripgrep | rg -uuu -tc -n -w '[A-Z]+_SUSPEND' | 447 | 0.063s (1.00x) |\n| ugrep | ugrep -r -n --include='*.c' --include='*.h' -w '[A-Z]+_SUSPEND' | 447 | 0.607s (9.62x) |\n| GNU grep | grep -E -r -n --include='*.c' --include='*.h' -w '[A-Z]+_SUSPEND' | 447 | 0.674s (10.69x) |",
+      "Now we'll move to searching on single large file. Here is a straight-up\ncomparison between ripgrep, ugrep and GNU grep on a file cached in memory\n(~13GB, OpenSubtitles.raw.en.gz, decompressed):",
+      "| Tool | Command | Line count | Time |\n| ---- | ------- | ---------- | ---- |\n| ripgrep (Unicode) | rg -w 'Sherlock [A-Z]\\w+' | 7882 | 1.042s (1.00x) |\n| ugrep | ugrep -w 'Sherlock [A-Z]\\w+' | 7882 | 1.339s (1.28x) |\n| GNU grep (Unicode) | LC_ALL=en_US.UTF-8 egrep -w 'Sherlock [A-Z]\\w+' | 7882 | 6.577s (6.31x) |",
+      "In the above benchmark, passing the -n flag (for showing line numbers)\nincreases the times to 1.664s for ripgrep and 9.484s for GNU grep. ugrep\ntimes are unaffected by the presence or absence of -n.",
+      "Beware of performance cliffs though:",
+      "| Tool | Command | Line count | Time |\n| ---- | ------- | ---------- | ---- |\n| ripgrep (Unicode) | rg -w '[A-Z]\\w+ Sherlock [A-Z]\\w+' | 485 | 1.053s (1.00x) |\n| GNU grep (Unicode) | LC_ALL=en_US.UTF-8 grep -E -w '[A-Z]\\w+ Sherlock [A-Z]\\w+' | 485 | 6.234s (5.92x) |\n| ugrep | ugrep -w '[A-Z]\\w+ Sherlock [A-Z]\\w+' | 485 | 28.973s (27.51x) |",
+      "And performance can drop precipitously across the board when searching big\nfiles for patterns without any opportunities for literal optimizations:",
+      "| Tool | Command | Line count | Time |\n| ---- | ------- | ---------- | ---- |\n| ripgrep | rg '[A-Za-z]{30}' | 6749 | 15.569s (1.00x) |\n| ugrep | ugrep -E '[A-Za-z]{30}' | 6749 | 21.857s (1.40x) |\n| GNU grep | LC_ALL=C grep -E '[A-Za-z]{30}' | 6749 | 32.409s (2.08x) |\n| GNU grep (Unicode) | LC_ALL=en_US.UTF-8 grep -E '[A-Za-z]{30}' | 6795 | 8m30s (32.74x) |",
+      "Finally, high match counts also tend to both tank performance and smooth\nout the differences between tools (because performance is dominated by how\nquickly one can handle a match and not the algorithm used to detect the match,\ngenerally speaking):",
+      "| Tool | Command | Line count | Time |\n| ---- | ------- | ---------- | ---- |\n| ripgrep | rg the | 83499915 | 6.948s (1.00x) |\n| ugrep | ugrep the | 83499915 | 11.721s (1.69x) |\n| GNU grep | LC_ALL=C grep the | 83499915 | 15.217s (2.19x) |"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Why should I use ripgrep?",
+    "text_blocks": [
+      "It can replace many use cases served by other search tools\nbecause it contains most of their features and is generally faster. (See\nthe FAQ for more details on whether ripgrep can truly\nreplace grep.)Like other tools specialized to code search, ripgrep defaults to\nrecursive search and does automatic\nfiltering. Namely, ripgrep won't search files\nignored by your .gitignore/.ignore/.rgignore files, it won't search\nhidden files and it won't search binary files. Automatic filtering can be\ndisabled with rg -uuu.ripgrep can search specific types of files.\nFor example, rg -tpy foo limits your search to Python files and rg -Tjs\nfoo excludes JavaScript files from your search. ripgrep can be taught about\nnew file types with custom matching rules.ripgrep supports many features found in grep, such as showing the context\nof search results, searching multiple patterns, highlighting matches with\ncolor and full Unicode support. Unlike GNU grep, ripgrep stays fast while\nsupporting Unicode (which is always on).ripgrep has optional support for switching its regex engine to use PCRE2.\nAmong other things, this makes it possible to use look-around and\nbackreferences in your patterns, which are not supported in ripgrep's default\nregex engine. PCRE2 support can be enabled with -P/--pcre2 (use PCRE2\nalways) or --auto-hybrid-regex (use PCRE2 only if needed). An alternative\nsyntax is provided via the --engine (default|pcre2|auto) option.ripgrep has rudimentary support for replacements,\nwhich permit rewriting output based on what was matched.ripgrep supports searching files in text encodings\nother than UTF-8, such as UTF-16, latin-1, GBK, EUC-JP, Shift_JIS and more.\n(Some support for automatically detecting UTF-16 is provided. Other text\nencodings must be specifically specified with the -E/--encoding flag.)ripgrep supports searching files compressed in a common format (brotli,\nbzip2, gzip, lz4, lzma, xz, or zstandard) with the -z/--search-zip flag.ripgrep supports\narbitrary input preprocessing filters\nwhich could be PDF text extraction, less supported decompression, decrypting,\nautomatic encoding detection and so on.ripgrep can be configured via a\nconfiguration file.",
+      "In other words, use ripgrep if you like speed, filtering by default, fewer\nbugs and Unicode support."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Why shouldn't I use ripgrep?",
+    "text_blocks": [
+      "Despite initially not wanting to add every feature under the sun to ripgrep,\nover time, ripgrep has grown support for most features found in other file\nsearching tools. This includes searching for results spanning across multiple\nlines, and opt-in support for PCRE2, which provides look-around and\nbackreference support.",
+      "At this point, the primary reasons not to use ripgrep probably consist of one\nor more of the following:",
+      "You need a portable and ubiquitous tool. While ripgrep works on Windows,\nmacOS and Linux, it is not ubiquitous and it does not conform to any\nstandard such as POSIX. The best tool for this job is good old grep.There still exists some other feature (or bug) not listed in this README that\nyou rely on that's in another tool that isn't in ripgrep.There is a performance edge case where ripgrep doesn't do well where another\ntool does do well. (Please file a bug report!)ripgrep isn't possible to install on your machine or isn't available for your\nplatform. (Please file a bug report!)"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Is it really faster than everything else?",
+    "text_blocks": [
+      "Generally, yes. A large number of benchmarks with detailed analysis for each is\navailable on my blog.",
+      "Summarizing, ripgrep is fast because:",
+      "It is built on top of\nRust's regex engine.\nRust's regex engine uses finite automata, SIMD and aggressive literal\noptimizations to make searching very fast. (PCRE2 support can be opted into\nwith the -P/--pcre2 flag.)Rust's regex library maintains performance with full Unicode support by\nbuilding UTF-8 decoding directly into its deterministic finite automaton\nengine.It supports searching with either memory maps or by searching incrementally\nwith an intermediate buffer. The former is better for single files and the\nlatter is better for large directories. ripgrep chooses the best searching\nstrategy for you automatically.Applies your ignore patterns in .gitignore files using a\nRegexSet.\nThat means a single file path can be matched against multiple glob patterns\nsimultaneously.It uses a lock-free parallel recursive directory iterator, courtesy of\ncrossbeam and\nignore."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Feature comparison",
+    "text_blocks": [
+      "Andy Lester, author of ack, has published an\nexcellent table comparing the features of ack, ag, git-grep, GNU grep and\nripgrep: https://beyondgrep.com/feature-comparison/",
+      "Note that ripgrep has grown a few significant new features recently that\nare not yet present in Andy's table. This includes, but is not limited to,\nconfiguration files, passthru, support for searching compressed files,\nmultiline search and opt-in fancy regex support via PCRE2."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Playground",
+    "text_blocks": [
+      "If you'd like to try ripgrep before installing, there's an unofficial\nplayground and an interactive\ntutorial.",
+      "If you have any questions about these, please open an issue in the tutorial\nrepo."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Installation",
+    "text_blocks": [
+      "The binary name for ripgrep is rg.",
+      "Archives of precompiled binaries for ripgrep are available for Windows,\nmacOS and Linux. Linux and\nWindows binaries are static executables. Users of platforms not explicitly\nmentioned below are advised to download one of these archives.",
+      "If you're a macOS Homebrew or a Linuxbrew user, then you can install\nripgrep from homebrew-core:",
+      "If you're a MacPorts user, then you can install ripgrep from the\nofficial ports:",
+      "If you're a Windows Chocolatey user, then you can install ripgrep from the\nofficial repo:",
+      "If you're a Windows Scoop user, then you can install ripgrep from the\nofficial bucket:",
+      "If you're a Windows Winget user, then you can install ripgrep from the\nwinget-pkgs\nrepository:",
+      "If you're an Arch Linux user, then you can install ripgrep from the official repos:",
+      "If you're a Gentoo user, you can install ripgrep from the\nofficial repo:",
+      "If you're a Fedora user, you can install ripgrep from official\nrepositories.",
+      "If you're an openSUSE user, ripgrep is included in openSUSE Tumbleweed\nand openSUSE Leap since 15.1.",
+      "If you're a CentOS Stream 10 user, you can install ripgrep from the\nEPEL repository:",
+      "If you're a Red Hat 10 user, you can install ripgrep from the\nEPEL repository:",
+      "If you're a Rocky Linux 10 user, you can install ripgrep from the\nEPEL repository:",
+      "If you're a Nix user, you can install ripgrep from\nnixpkgs:",
+      "If you're a Flox user, you can install ripgrep as follows:",
+      "If you're a Guix user, you can install ripgrep from the official\npackage collection:",
+      "If you're a Debian user (or a user of a Debian derivative like Ubuntu),\nthen ripgrep can be installed using a binary .deb file provided in each\nripgrep release.",
+      "If you run Debian stable, ripgrep is officially maintained by\nDebian, although its version may\nbe older than the deb package available in the previous step.",
+      "If you're an Ubuntu Cosmic (18.10) (or newer) user, ripgrep is\navailable using the same\npackaging as Debian:",
+      "(N.B. Various snaps for ripgrep on Ubuntu are also available, but none of them\nseem to work right and generate a number of very strange bug reports that I\ndon't know how to fix and don't have the time to fix. Therefore, it is no\nlonger a recommended installation option.)",
+      "If you're an ALT user, you can install ripgrep from the\nofficial repo:",
+      "If you're a FreeBSD user, then you can install ripgrep from the\nofficial ports:",
+      "If you're an OpenBSD user, then you can install ripgrep from the\nofficial ports:",
+      "If you're a NetBSD user, then you can install ripgrep from\npkgsrc:",
+      "If you're a Haiku x86_64 user, then you can install ripgrep from the\nofficial ports:",
+      "If you're a Haiku x86_gcc2 user, then you can install ripgrep from the\nsame port as Haiku x86_64 using the x86 secondary architecture build:",
+      "If you're a Void Linux user, then you can install ripgrep from the\nofficial repository:",
+      "If you're a Rust programmer, ripgrep can be installed with cargo.",
+      "Note that the minimum supported version of Rust for ripgrep is 1.85.0,\nalthough ripgrep may work with older versions.Note that the binary may be bigger than expected because it contains debug\nsymbols. This is intentional. To remove debug symbols and therefore reduce\nthe file size, run strip on the binary.",
+      "Alternatively, one can use cargo\nbinstall to install a ripgrep\nbinary directly from GitHub:"
+    ],
+    "code_blocks": [
+      "$ brew install ripgrep",
+      "$ sudo port install ripgrep",
+      "$ choco install ripgrep",
+      "$ scoop install ripgrep",
+      "$ winget install BurntSushi.ripgrep.MSVC",
+      "$ sudo pacman -S ripgrep",
+      "$ sudo emerge sys-apps/ripgrep",
+      "$ sudo dnf install ripgrep",
+      "$ sudo zypper install ripgrep",
+      "$ sudo dnf config-manager --set-enabled crb\n$ sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm\n$ sudo dnf install ripgrep",
+      "$ sudo subscription-manager repos --enable codeready-builder-for-rhel-10-$(arch)-rpms\n$ sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm\n$ sudo dnf install ripgrep",
+      "$ sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm\n$ sudo dnf install ripgrep",
+      "$ nix-env --install ripgrep",
+      "$ flox install ripgrep",
+      "$ guix install ripgrep",
+      "$ curl -LO https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep_14.1.1-1_amd64.deb\n$ sudo dpkg -i ripgrep_14.1.1-1_amd64.deb",
+      "$ sudo apt-get install ripgrep",
+      "$ sudo apt-get install ripgrep",
+      "$ sudo apt-get install ripgrep",
+      "$ sudo pkg install ripgrep",
+      "$ doas pkg_add ripgrep",
+      "$ sudo pkgin install ripgrep",
+      "$ sudo pkgman install ripgrep",
+      "$ sudo pkgman install ripgrep_x86",
+      "$ sudo xbps-install -Syv ripgrep",
+      "$ cargo install ripgrep",
+      "$ cargo binstall ripgrep"
+    ]
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Building",
+    "text_blocks": [
+      "ripgrep is written in Rust, so you'll need to grab a\nRust installation in order to compile it.\nripgrep compiles with Rust 1.85.0 (stable) or newer. In general, ripgrep tracks\nthe latest stable release of the Rust compiler.",
+      "To build ripgrep:",
+      "NOTE: In the past, ripgrep supported a simd-accel Cargo feature when\nusing a Rust nightly compiler. This only benefited UTF-16 transcoding.\nSince it required unstable features, this build mode was prone to breakage.\nBecause of that, support for it has been removed. If you want SIMD\noptimizations for UTF-16 transcoding, then you'll have to petition the\nencoding_rs project to use stable\nAPIs.",
+      "Finally, optional PCRE2 support can be built with ripgrep by enabling the\npcre2 feature:",
+      "Enabling the PCRE2 feature works with a stable Rust compiler and will\nattempt to automatically find and link with your system's PCRE2 library via\npkg-config. If one doesn't exist, then ripgrep will build PCRE2 from source\nusing your system's C compiler and then statically link it into the final\nexecutable. Static linking can be forced even when there is an available PCRE2\nsystem library by either building ripgrep with the MUSL target or by setting\nPCRE2_SYS_STATIC=1.",
+      "ripgrep can be built with the MUSL target on Linux by first installing the MUSL\nlibrary on your system (consult your friendly neighborhood package manager).\nThen you just need to add MUSL support to your Rust toolchain and rebuild\nripgrep, which yields a fully static executable:",
+      "Applying the --features flag from above works as expected. If you want to\nbuild a static executable with MUSL and with PCRE2, then you will need to have\nmusl-gcc installed, which might be in a separate package from the actual\nMUSL library, depending on your Linux distribution."
+    ],
+    "code_blocks": [
+      "$ git clone https://github.com/BurntSushi/ripgrep\n$ cd ripgrep\n$ cargo build --release\n$ ./target/release/rg --version\n0.1.3",
+      "$ cargo build --release --features 'pcre2'",
+      "$ rustup target add x86_64-unknown-linux-musl\n$ cargo build --release --target x86_64-unknown-linux-musl"
+    ]
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Running tests",
+    "text_blocks": [
+      "ripgrep is relatively well-tested, including both unit tests and integration\ntests. To run the full test suite, use:",
+      "from the repository root."
+    ],
+    "code_blocks": [
+      "$ cargo test --all"
+    ]
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Related tools",
+    "text_blocks": [
+      "delta is a syntax highlighting\npager that supports the rg --json output format. So all you need to do to\nmake it work is rg --json pattern | delta. See delta's manual section on\ngrep for more details."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Vulnerability reporting",
+    "text_blocks": [
+      "For reporting a security vulnerability, please\ncontact Andrew Gallant.\nThe contact page has my email address and PGP public key if you wish to send an\nencrypted message."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/README.md",
+    "header": "Translations",
+    "text_blocks": [
+      "The following is a list of known translations of ripgrep's documentation. These\nare unofficially maintained and may not be up to date.",
+      "ChineseSpanish"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "User Guide",
+    "text_blocks": [
+      "This guide is intended to give an elementary description of ripgrep and an\noverview of its capabilities. This guide assumes that ripgrep is\ninstalled\nand that readers have passing familiarity with using command line tools. This\nalso assumes a Unix-like system, although most commands are probably easily\ntranslatable to any command line shell environment."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Table of Contents",
+    "text_blocks": [
+      "BasicsRecursive searchAutomatic filteringManual filtering: globsManual filtering: file typesReplacementsConfiguration fileFile encodingBinary dataPreprocessorCommon options"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Basics",
+    "text_blocks": [
+      "ripgrep is a command line tool that searches your files for patterns that\nyou give it. ripgrep behaves as if reading each file line by line. If a line\nmatches the pattern provided to ripgrep, then that line will be printed. If a\nline does not match the pattern, then the line is not printed.",
+      "The best way to see how this works is with an example. To show an example, we\nneed something to search. Let's try searching ripgrep's source code. First\ngrab a ripgrep source archive from\nhttps://github.com/BurntSushi/ripgrep/archive/0.7.1.zip\nand extract it:",
+      "Let's try our first search by looking for all occurrences of the word fast\nin README.md:",
+      "(Note: If you see an error message from ripgrep saying that it didn't\nsearch any files, then re-run ripgrep with the --debug flag. One likely cause\nof this is that you have a * rule in a $HOME/.gitignore file.)",
+      "So what happened here? ripgrep read the contents of README.md, and for each\nline that contained fast, ripgrep printed it to your terminal. ripgrep also\nincluded the line number for each line by default. If your terminal supports\ncolors, then your output might actually look something like this screenshot:",
+      "In this example, we searched for something called a \"literal\" string. This\nmeans that our pattern was just some normal text that we asked ripgrep to\nfind. But ripgrep supports the ability to specify patterns via regular\nexpressions. As an example,\nwhat if we wanted to find all lines have a word that contains fast followed\nby some number of other letters?",
+      "In this example, we used the pattern fast\\w+. This pattern tells ripgrep to\nlook for any lines containing the letters fast followed by one or more\nword-like characters. Namely, \\w matches characters that compose words (like\na and L but unlike . and  ). The + after the \\w means, \"match the\nprevious pattern one or more times.\" This means that the word fast won't\nmatch because there are no word characters following the final t. But a word\nlike faster will. faste would also match!",
+      "Here's a different variation on this same theme:",
+      "In this case, we used fast\\w* for our pattern instead of fast\\w+. The *\nmeans that it should match zero or more times. In this case, ripgrep will\nprint the same lines as the pattern fast, but if your terminal supports\ncolors, you'll notice that faster will be highlighted instead of just the\nfast prefix.",
+      "It is beyond the scope of this guide to provide a full tutorial on regular\nexpressions, but ripgrep's specific syntax is documented here:\nhttps://docs.rs/regex/*/regex/#syntax"
+    ],
+    "code_blocks": [
+      "$ curl -LO https://github.com/BurntSushi/ripgrep/archive/0.7.1.zip\n$ unzip 0.7.1.zip\n$ cd ripgrep-0.7.1\n$ ls\nbenchsuite  grep       tests         Cargo.toml       LICENSE-MIT\nci          ignore     wincolor      CHANGELOG.md     README.md\ncomplete    pkg        appveyor.yml  compile          snapcraft.yaml\ndoc         src        build.rs      COPYING          UNLICENSE\nglobset     termcolor  Cargo.lock    HomebrewFormula",
+      "$ rg fast README.md\n75:  faster than both. (N.B. It is not, strictly speaking, a \"drop-in\" replacement\n88:  color and full Unicode support. Unlike GNU grep, `ripgrep` stays fast while\n119:### Is it really faster than everything else?\n124:Summarizing, `ripgrep` is fast because:\n129:  optimizations to make searching very fast.",
+      "$ rg 'fast\\w+' README.md\n75:  faster than both. (N.B. It is not, strictly speaking, a \"drop-in\" replacement\n119:### Is it really faster than everything else?",
+      "$ rg 'fast\\w*' README.md\n75:  faster than both. (N.B. It is not, strictly speaking, a \"drop-in\" replacement\n88:  color and full Unicode support. Unlike GNU grep, `ripgrep` stays fast while\n119:### Is it really faster than everything else?\n124:Summarizing, `ripgrep` is fast because:\n129:  optimizations to make searching very fast."
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Recursive search",
+    "text_blocks": [
+      "In the previous section, we showed how to use ripgrep to search a single file.\nIn this section, we'll show how to use ripgrep to search an entire directory\nof files. In fact, recursively searching your current working directory is\nthe default mode of operation for ripgrep, which means doing this is very\nsimple.",
+      "Using our unzipped archive of ripgrep source code, here's how to find all\nfunction definitions whose name is write:",
+      "(Note: We escape the ( here because ( has special significance inside\nregular expressions. You could also use rg -F 'fn write(' to achieve the\nsame thing, where -F interprets your pattern as a literal string instead of\na regular expression.)",
+      "In this example, we didn't specify a file at all. Instead, ripgrep defaulted\nto searching your current directory in the absence of a path. In general,\nrg foo is equivalent to rg foo ./.",
+      "This particular search showed us results in both the src and termcolor\ndirectories. The src directory is the core ripgrep code where as termcolor\nis a dependency of ripgrep (and is used by other tools). What if we only wanted\nto search core ripgrep code? Well, that's easy, just specify the directory you\nwant:",
+      "Here, ripgrep limited its search to the src directory. Another way of doing\nthis search would be to cd into the src directory and simply use rg 'fn\nwrite\\(' again."
+    ],
+    "code_blocks": [
+      "$ rg 'fn write\\('\nsrc/printer.rs\n469:    fn write(&mut self, buf: &[u8]) {\n\ntermcolor/src/lib.rs\n227:    fn write(&mut self, b: &[u8]) -> io::Result<usize> {\n250:    fn write(&mut self, b: &[u8]) -> io::Result<usize> {\n428:    fn write(&mut self, b: &[u8]) -> io::Result<usize> { self.wtr.write(b) }\n441:    fn write(&mut self, b: &[u8]) -> io::Result<usize> { self.wtr.write(b) }\n454:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n511:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n848:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n915:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n949:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n1114:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n1348:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {\n1353:    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {",
+      "$ rg 'fn write\\(' src\nsrc/printer.rs\n469:    fn write(&mut self, buf: &[u8]) {"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Automatic filtering",
+    "text_blocks": [
+      "After recursive search, ripgrep's most important feature is what it doesn't\nsearch. By default, when you search a directory, ripgrep will ignore all of\nthe following:",
+      "Files and directories that match glob patterns in these three categories:.gitignore globs (including global and repo-specific globs). This\nincludes .gitignore files in parent directories that are part of the\nsame git repository. (Unless the --no-require-git flag is given.).ignore globs, which take precedence over all gitignore globs\nwhen there's a conflict. This includes .ignore files in parent\ndirectories..rgignore globs, which take precedence over all .ignore globs\nwhen there's a conflict. This includes .rgignore files in parent\ndirectories.Hidden files and directories.Binary files. (ripgrep considers any file with a NUL byte to be binary.)Symbolic links aren't followed.",
+      "All of these things can be toggled using various flags provided by ripgrep:",
+      "You can disable all ignore-related filtering with the --no-ignore flag.Hidden files and directories can be searched with the --hidden (-. for\nshort) flag.Binary files can be searched via the --text (-a for short) flag.\nBe careful with this flag! Binary files may emit control characters to your\nterminal, which might cause strange behavior.ripgrep can follow symlinks with the --follow (-L for short) flag.",
+      "As a special convenience, ripgrep also provides a flag called --unrestricted\n(-u for short). Repeated uses of this flag will cause ripgrep to disable\nmore and more of its filtering. That is, -u will disable .gitignore\nhandling, -uu will search hidden files and directories and -uuu will search\nbinary files. This is useful when you're using ripgrep and you aren't sure\nwhether its filtering is hiding results from you. Tacking on a couple -u\nflags is a quick way to find out. (Use the --debug flag if you're still\nperplexed, and if that doesn't help,\nfile an issue.)",
+      "ripgrep's .gitignore handling actually goes a bit beyond just .gitignore\nfiles. ripgrep will also respect repository specific rules found in\n$GIT_DIR/info/exclude, as well as any global ignore rules in your\ncore.excludesFile (which is usually $XDG_CONFIG_HOME/git/ignore on\nUnix-like systems).",
+      "Sometimes you want to search files that are in your .gitignore, so it is\npossible to specify additional ignore rules or overrides in a .ignore\n(application agnostic) or .rgignore (ripgrep specific) file.",
+      "For example, let's say you have a .gitignore file that looks like this:",
+      "This generally means that any log directory won't be tracked by git.\nHowever, perhaps it contains useful output that you'd like to include in your\nsearches, but you still don't want to track it in git. You can achieve this\nby creating a .ignore file in the same directory as the .gitignore file\nwith the following contents:",
+      "ripgrep treats .ignore files with higher precedence than .gitignore files\n(and treats .rgignore files with higher precedence than .ignore files).\nThis means ripgrep will see the !log/ whitelist rule first and search that\ndirectory.",
+      "Like .gitignore, a .ignore file can be placed in any directory. Its rules\nwill be processed with respect to the directory it resides in, just like\n.gitignore.",
+      "To process .gitignore and .ignore files case insensitively, use the flag\n--ignore-file-case-insensitive. This is especially useful on case insensitive\nfile systems like those on Windows and macOS. Note though that this can come\nwith a significant performance penalty, and is therefore disabled by default.",
+      "For a more in depth description of how glob patterns in a .gitignore file\nare interpreted, please see man gitignore."
+    ],
+    "code_blocks": [
+      "log/",
+      "!log/"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Manual filtering: globs",
+    "text_blocks": [
+      "In the previous section, we talked about ripgrep's filtering that it does by\ndefault. It is \"automatic\" because it reacts to your environment. That is, it\nuses already existing .gitignore files to produce more relevant search\nresults.",
+      "In addition to automatic filtering, ripgrep also provides more manual or ad hoc\nfiltering. This comes in two varieties: additional glob patterns specified in\nyour ripgrep commands and file type filtering. This section covers glob\npatterns while the next section covers file type filtering.",
+      "In our ripgrep source code (see Basics for instructions on how to\nget a source archive to search), let's say we wanted to see which things depend\non clap, our argument parser.",
+      "We could do this:",
+      "But this shows us many things, and we're only interested in where we wrote\nclap as a dependency. Instead, we could limit ourselves to TOML files, which\nis how dependencies are communicated to Rust's build tool, Cargo:",
+      "The -g '*.toml' syntax says, \"make sure every file searched matches this\nglob pattern.\" Note that we put '*.toml' in single quotes to prevent our\nshell from expanding the *.",
+      "If we wanted, we could tell ripgrep to search anything but *.toml files:",
+      "This will give you a lot of results again as above, but they won't include\nfiles ending with .toml. Note that the use of a ! here to mean \"negation\"\nis a bit non-standard, but it was chosen to be consistent with how globs in\n.gitignore files are written. (Although, the meaning is reversed. In\n.gitignore files, a ! prefix means whitelist, and on the command line, a\n! means blacklist.)",
+      "Globs are interpreted in exactly the same way as .gitignore patterns. That\nis, later globs will override earlier globs. For example, the following command\nwill search only *.toml files:",
+      "Interestingly, reversing the order of the globs in this case will match\nnothing, since the presence of at least one non-blacklist glob will institute a\nrequirement that every file searched must match at least one glob. In this\ncase, the blacklist glob takes precedence over the previous glob and prevents\nany file from being searched at all!"
+    ],
+    "code_blocks": [
+      "$ rg clap\n[lots of results]",
+      "$ rg clap -g '*.toml'\nCargo.toml\n35:clap = \"2.26\"\n51:clap = \"2.26\"",
+      "$ rg clap -g '!*.toml'\n[lots of results]",
+      "$ rg clap -g '!*.toml' -g '*.toml'"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Manual filtering: file types",
+    "text_blocks": [
+      "Over time, you might notice that you use the same glob patterns over and over.\nFor example, you might find yourself doing a lot of searches where you only\nwant to see results for Rust files:",
+      "Instead of writing out the glob every time, you can use ripgrep's support for\nfile types:",
+      "or, more succinctly,",
+      "The way the --type flag functions is simple. It acts as a name that is\nassigned to one or more globs that match the relevant files. This lets you\nwrite a single type that might encompass a broad range of file extensions. For\nexample, if you wanted to search C files, you'd have to check both C source\nfiles and C header files:",
+      "or you could just use the C file type:",
+      "Just as you can write blacklist globs, you can blacklist file types too:",
+      "or, more succinctly,",
+      "That is, -t means \"include files of this type\" where as -T means \"exclude\nfiles of this type.\"",
+      "To see the globs that make up a type, run rg --type-list:",
+      "By default, ripgrep comes with a bunch of pre-defined types. Generally, these\ntypes correspond to well known public formats. But you can define your own\ntypes as well. For example, perhaps you frequently search \"web\" files, which\nconsist of JavaScript, HTML and CSS:",
+      "or, more succinctly,",
+      "The above command defines a new type, web, corresponding to the glob\n*.{html,css,js}. It then applies the new filter with -tweb and searches for\nthe pattern title. If you ran",
+      "Then you would see your web type show up in the list, even though it is not\npart of ripgrep's built-in types.",
+      "It is important to stress here that the --type-add flag only applies to the\ncurrent command. It does not add a new file type and save it somewhere in a\npersistent form. If you want a type to be available in every ripgrep command,\nthen you should either create a shell alias:",
+      "or add --type-add=web:*.{html,css,js} to your ripgrep configuration file.\n(Configuration files are covered in more detail later.)"
+    ],
+    "code_blocks": [
+      "$ rg 'fn run' -g '*.rs'",
+      "$ rg 'fn run' --type rust",
+      "$ rg 'fn run' -trust",
+      "$ rg 'int main' -g '*.{c,h}'",
+      "$ rg 'int main' -tc",
+      "$ rg clap --type-not rust",
+      "$ rg clap -Trust",
+      "$ rg --type-list | rg '^make:'\nmake: *.mak, *.mk, GNUmakefile, Gnumakefile, Makefile, gnumakefile, makefile",
+      "$ rg --type-add 'web:*.html' --type-add 'web:*.css' --type-add 'web:*.js' -tweb title",
+      "$ rg --type-add 'web:*.{html,css,js}' -tweb title",
+      "$ rg --type-add 'web:*.{html,css,js}' --type-list",
+      "alias rg=\"rg --type-add 'web:*.{html,css,js}'\""
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "The special all file type",
+    "text_blocks": [
+      "A special option supported by the --type flag is all. --type all looks\nfor a match in any of the supported file types listed by --type-list,\nincluding those added on the command line using --type-add. It's equivalent\nto the command rg --type agda --type asciidoc --type asm ..., where ...\nstands for a list of --type flags for the rest of the types in --type-list.",
+      "As an example, let's suppose you have a shell script in your current directory,\nmy-shell-script, which includes a shell library, my-shell-library.bash.\nBoth rg --type sh and rg --type all would only search for matches in\nmy-shell-library.bash, not my-shell-script, because the globs matched\nby the sh file type don't include files without an extension. On the\nother hand, rg --type-not all would search my-shell-script but not\nmy-shell-library.bash."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Replacements",
+    "text_blocks": [
+      "ripgrep provides a limited ability to modify its output by replacing matched\ntext with some other text. This is easiest to explain with an example. Remember\nwhen we searched for the word fast in ripgrep's README?",
+      "What if we wanted to replace all occurrences of fast with FAST? That's\neasy with ripgrep's --replace flag:",
+      "or, more succinctly,",
+      "In essence, the --replace flag applies only to the matching portion of text\nin the output. If you instead wanted to replace an entire line of text, then\nyou need to include the entire line in your match. For example:",
+      "Alternatively, you can combine the --only-matching (or -o for short) with\nthe --replace flag to achieve the same result:",
+      "or, more succinctly,",
+      "Finally, replacements can include capturing groups. For example, let's say\nwe wanted to find all occurrences of fast followed by another word and\njoin them together with a dash. The pattern we might use for that is\nfast\\s+(\\w+), which matches fast, followed by any amount of whitespace,\nfollowed by any number of \"word\" characters. We put the \\w+ in a \"capturing\ngroup\" (indicated by parentheses) so that we can reference it later in our\nreplacement string. For example:",
+      "Our replacement string here, fast-$1, consists of fast- followed by the\ncontents of the capturing group at index 1. (Capturing groups actually start\nat index 0, but the 0th capturing group always corresponds to the entire\nmatch. The capturing group at index 1 always corresponds to the first\nexplicit capturing group found in the regex pattern.)",
+      "Capturing groups can also be named, which is sometimes more convenient than\nusing the indices. For example, the following command is equivalent to the\nabove command:",
+      "It is important to note that ripgrep will never modify your files. The\n--replace flag only controls ripgrep's output. (And there is no flag to let\nyou do a replacement in a file.)"
+    ],
+    "code_blocks": [
+      "$ rg fast README.md\n75:  faster than both. (N.B. It is not, strictly speaking, a \"drop-in\" replacement\n88:  color and full Unicode support. Unlike GNU grep, `ripgrep` stays fast while\n119:### Is it really faster than everything else?\n124:Summarizing, `ripgrep` is fast because:\n129:  optimizations to make searching very fast.",
+      "$ rg fast README.md --replace FAST\n75:  FASTer than both. (N.B. It is not, strictly speaking, a \"drop-in\" replacement\n88:  color and full Unicode support. Unlike GNU grep, `ripgrep` stays FAST while\n119:### Is it really FASTer than everything else?\n124:Summarizing, `ripgrep` is FAST because:\n129:  optimizations to make searching very FAST.",
+      "$ rg fast README.md -r FAST\n[snip]",
+      "$ rg '^.*fast.*$' README.md -r FAST\n75:FAST\n88:FAST\n119:FAST\n124:FAST\n129:FAST",
+      "$ rg fast README.md --only-matching --replace FAST\n75:FAST\n88:FAST\n119:FAST\n124:FAST\n129:FAST",
+      "$ rg fast README.md -or FAST\n[snip]",
+      "$ rg 'fast\\s+(\\w+)' README.md -r 'fast-$1'\n88:  color and full Unicode support. Unlike GNU grep, `ripgrep` stays fast-while\n124:Summarizing, `ripgrep` is fast-because:",
+      "$ rg 'fast\\s+(?P<word>\\w+)' README.md -r 'fast-$word'\n88:  color and full Unicode support. Unlike GNU grep, `ripgrep` stays fast-while\n124:Summarizing, `ripgrep` is fast-because:"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Configuration file",
+    "text_blocks": [
+      "It is possible that ripgrep's default options aren't suitable in every case.\nFor that reason, and because shell aliases aren't always convenient, ripgrep\nsupports configuration files.",
+      "Setting up a configuration file is simple. ripgrep will not look in any\npredetermined directory for a config file automatically. Instead, you need to\nset the RIPGREP_CONFIG_PATH environment variable to the file path of your\nconfig file. Once the environment variable is set, open the file and just type\nin the flags you want set automatically. There are only two rules for\ndescribing the format of the config file:",
+      "Every line is a shell argument, after trimming whitespace.Lines starting with # (optionally preceded by any amount of whitespace)\nare ignored.",
+      "In particular, there is no escaping. Each line is given to ripgrep as a single\ncommand line argument verbatim.",
+      "Here's an example of a configuration file, which demonstrates some of the\nformatting peculiarities:",
+      "When we use a flag that has a value, we either put the flag and the value on\nthe same line but delimited by an = sign (e.g., --max-columns=150), or we\nput the flag and the value on two different lines. This is because ripgrep's\nargument parser knows to treat the single argument --max-columns=150 as a\nflag with a value, but if we had written --max-columns 150 in our\nconfiguration file, then ripgrep's argument parser wouldn't know what to do\nwith it.",
+      "Putting the flag and value on different lines is exactly equivalent and is a\nmatter of style.",
+      "Comments are encouraged so that you remember what the config is doing. Empty\nlines are OK too.",
+      "So let's say you're using the above configuration file, but while you're at a\nterminal, you really want to be able to see lines longer than 150 columns. What\ndo you do? Thankfully, all you need to do is pass --max-columns 0 (or -M0\nfor short) on the command line, which will override your configuration file's\nsetting. This works because ripgrep's configuration file is prepended to the\nexplicit arguments you give it on the command line. Since flags given later\noverride flags given earlier, everything works as expected. This works for most\nother flags as well, and each flag's documentation states which other flags\noverride it.",
+      "If you're confused about what configuration file ripgrep is reading arguments\nfrom, then running ripgrep with the --debug flag should help clarify things.\nThe debug output should note what config file is being loaded and the arguments\nthat have been read from the configuration.",
+      "Finally, if you want to make absolutely sure that ripgrep isn't reading a\nconfiguration file, then you can pass the --no-config flag, which will always\nprevent ripgrep from reading extraneous configuration from the environment,\nregardless of what other methods of configuration are added to ripgrep in the\nfuture."
+    ],
+    "code_blocks": [
+      "$ cat $HOME/.ripgreprc\n# Don't let ripgrep vomit really long lines to my terminal, and show a preview.\n--max-columns=150\n--max-columns-preview\n\n# Add my 'web' type.\n--type-add\nweb:*.{html,css,js}*\n\n# Search hidden files / directories (e.g. dotfiles) by default\n--hidden\n\n# Using glob patterns to include/exclude files or folders\n--glob=!.git/*\n\n# or\n--glob\n!.git/*\n\n# Set the colors.\n--colors=line:none\n--colors=line:style:bold\n\n# Because who cares about case!?\n--smart-case"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "File encoding",
+    "text_blocks": [
+      "Text encoding is a complex\ntopic, but we can try to summarize its relevancy to ripgrep:",
+      "Files are generally just a bundle of bytes. There is no reliable way to know\ntheir encoding.Either the encoding of the pattern must match the encoding of the files being\nsearched, or a form of transcoding must be performed that converts either the\npattern or the file to the same encoding as the other.ripgrep tends to work best on plain text files, and among plain text files,\nthe most popular encodings likely consist of ASCII, latin1 or UTF-8. As\na special exception, UTF-16 is prevalent in Windows environments",
+      "In light of the above, here is how ripgrep behaves when --encoding auto is\ngiven, which is the default:",
+      "All input is assumed to be ASCII compatible (which means every byte that\ncorresponds to an ASCII codepoint actually is an ASCII codepoint). This\nincludes ASCII itself, latin1 and UTF-8.ripgrep works best with UTF-8. For example, ripgrep's regular expression\nengine supports Unicode features. Namely, character classes like \\w will\nmatch all word characters by Unicode's definition and . will match any\nUnicode codepoint instead of any byte. These constructions assume UTF-8,\nso they simply won't match when they come across bytes in a file that aren't\nUTF-8.To handle the UTF-16 case, ripgrep will do something called \"BOM sniffing\"\nby default. That is, the first three bytes of a file will be read, and if\nthey correspond to a UTF-16 BOM, then ripgrep will transcode the contents of\nthe file from UTF-16 to UTF-8, and then execute the search on the transcoded\nversion of the file. (This incurs a performance penalty since transcoding\nis needed in addition to regex searching.) If the file contains invalid\nUTF-16, then the Unicode replacement codepoint is substituted in place of\ninvalid code units.To handle other cases, ripgrep provides a -E/--encoding flag, which permits\nyou to specify an encoding from the\nEncoding Standard.\nripgrep will assume all files searched are the encoding specified (unless\nthe file has a BOM) and will perform a transcoding step just like in the\nUTF-16 case described above.",
+      "By default, ripgrep will not require its input be valid UTF-8. That is, ripgrep\ncan and will search arbitrary bytes. The key here is that if you're searching\ncontent that isn't UTF-8, then the usefulness of your pattern will degrade. If\nyou're searching bytes that aren't ASCII compatible, then it's likely the\npattern won't find anything. With all that said, this mode of operation is\nimportant, because it lets you find ASCII or UTF-8 within files that are\notherwise arbitrary bytes.",
+      "As a special case, the -E/--encoding flag supports the value none, which\nwill completely disable all encoding related logic, including BOM sniffing.\nWhen -E/--encoding is set to none, ripgrep will search the raw bytes of\nthe underlying file with no transcoding step. For example, here's how you might\nsearch the raw UTF-16 encoding of the string Шерлок:",
+      "Of course, that's just an example meant to show how one can drop down into\nraw bytes. Namely, the simpler command works as you might expect automatically:",
+      "Finally, it is possible to disable ripgrep's Unicode support from within the\nregular expression. For example, let's say you wanted . to match any byte\nrather than any Unicode codepoint. (You might want this while searching a\nbinary file, since . by default will not match invalid UTF-8.) You could do\nthis by disabling Unicode via a regular expression flag:",
+      "This works for any part of the pattern. For example, the following will find\nany Unicode word character followed by any ASCII word character followed by\nanother Unicode word character:"
+    ],
+    "code_blocks": [
+      "$ rg '(?-u)\\(\\x045\\x04@\\x04;\\x04>\\x04:\\x04' -E none -a some-utf16-file",
+      "$ rg 'Шерлок' some-utf16-file",
+      "$ rg '(?-u:.)'",
+      "$ rg '\\w(?-u:\\w)\\w'"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Binary data",
+    "text_blocks": [
+      "In addition to skipping hidden files and files in your .gitignore by default,\nripgrep also attempts to skip binary files. ripgrep does this by default\nbecause binary files (like PDFs or images) are typically not things you want to\nsearch when searching for regex matches. Moreover, if content in a binary file\ndid match, then it's possible for undesirable binary data to be printed to your\nterminal and wreak havoc.",
+      "Unfortunately, unlike skipping hidden files and respecting your .gitignore\nrules, a file cannot as easily be classified as binary. In order to figure out\nwhether a file is binary, the most effective heuristic that balances\ncorrectness with performance is to simply look for NUL bytes. At that point,\nthe determination is simple: a file is considered \"binary\" if and only if it\ncontains a NUL byte somewhere in its contents.",
+      "The issue is that while most binary files will have a NUL byte toward the\nbeginning of its contents, this is not necessarily true. The NUL byte might\nbe the very last byte in a large file, but that file is still considered\nbinary. While this leads to a fair amount of complexity inside ripgrep's\nimplementation, it also results in some unintuitive user experiences.",
+      "At a high level, ripgrep operates in three different modes with respect to\nbinary files:",
+      "The default mode is to attempt to remove binary files from a search\ncompletely. This is meant to mirror how ripgrep removes hidden files and\nfiles in your .gitignore automatically. That is, as soon as a file is\ndetected as binary, searching stops. If a match was already printed (because\nit was detected long before a NUL byte), then ripgrep will print a warning\nmessage indicating that the search stopped prematurely. This default mode\nonly applies to files searched by ripgrep as a result of recursive\ndirectory traversal, which is consistent with ripgrep's other automatic\nfiltering. For example, rg foo .file will search .file even though it\nis hidden. Similarly, rg foo binary-file will search binary-file in\n\"binary\" mode automatically.Binary mode is similar to the default mode, except it will not always\nstop searching after it sees a NUL byte. Namely, in this mode, ripgrep\nwill continue searching a file that is known to be binary until the first\nof two conditions is met: 1) the end of the file has been reached or 2) a\nmatch is or has been seen. This means that in binary mode, if ripgrep\nreports no matches, then there are no matches in the file. When a match does\noccur, ripgrep prints a message similar to one it prints when in its default\nmode indicating that the search has stopped prematurely. This mode can be\nforcefully enabled for all files with the --binary flag. The purpose of\nbinary mode is to provide a way to discover matches in all files, but to\navoid having binary data dumped into your terminal.Text mode completely disables all binary detection and searches all files\nas if they were text. This is useful when searching a file that is\npredominantly text but contains a NUL byte, or if you are specifically\ntrying to search binary data. This mode can be enabled with the -a/--text\nflag. Note that when using this mode on very large binary files, it is\npossible for ripgrep to use a lot of memory.",
+      "Unfortunately, there is one additional complexity in ripgrep that can make it\ndifficult to reason about binary files. That is, the way binary detection works\ndepends on the way that ripgrep searches your files. Specifically:",
+      "When ripgrep uses memory maps, then binary detection is only performed on the\nfirst few kilobytes of the file in addition to every matching line.When ripgrep doesn't use memory maps, then binary detection is performed on\nall bytes searched.",
+      "This means that whether a file is detected as binary or not can change based\non the internal search strategy used by ripgrep. If you prefer to keep\nripgrep's binary file detection consistent, then you can disable memory maps\nvia the --no-mmap flag. (The cost will be a small performance regression when\nsearching very large files on some platforms.)"
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Preprocessor",
+    "text_blocks": [
+      "In ripgrep, a preprocessor is any type of command that can be run to transform\nthe input of every file before ripgrep searches it. This makes it possible to\nsearch virtually any kind of content that can be automatically converted to\ntext without having to teach ripgrep how to read said content.",
+      "One common example is searching PDFs. PDFs are first and foremost meant to be\ndisplayed to users. But PDFs often have text streams in them that can be useful\nto search. In our case, we want to search Bruce Watson's excellent\ndissertation,\nTaxonomies and Toolkits of Regular Language Algorithms.\nAfter downloading it, let's try searching it:",
+      "Surely, a dissertation on regular language algorithms would mention\nCommentz-Walter. Indeed it does, but our search isn't picking it up because\nPDFs are a binary format, and the text shown in the PDF may not be encoded as\nsimple contiguous UTF-8. Namely, even passing the -a/--text flag to ripgrep\nwill not make our search work.",
+      "One way to fix this is to convert the PDF to plain text first. This won't work\nwell for all PDFs, but does great in a lot of cases. (Note that the tool we\nuse, pdftotext, is part of the poppler\nPDF rendering library.)",
+      "But having to explicitly convert every file can be a pain, especially when you\nhave a directory full of PDF files. Instead, we can use ripgrep's preprocessor\nfeature to search the PDF. ripgrep's --pre flag works by taking a single\ncommand name and then executing that command for every file that it searches.\nripgrep passes the file path as the first and only argument to the command and\nalso sends the contents of the file to stdin. So let's write a simple shell\nscript that wraps pdftotext in a way that conforms to this interface:",
+      "With preprocess in the same directory as 1995-watson.pdf, we can now use it\nto search the PDF:",
+      "Note that preprocess must be resolvable to a command that ripgrep can read.\nThe simplest way to do this is to put your preprocessor command in a directory\nthat is in your PATH (or equivalent), or otherwise use an absolute path.",
+      "As a bonus, this turns out to be quite a bit faster than other specialized PDF\ngrepping tools:",
+      "If you wind up needing to search a lot of PDFs, then ripgrep's parallelism can\nmake the speed difference even greater."
+    ],
+    "code_blocks": [
+      "$ rg 'The Commentz-Walter algorithm' 1995-watson.pdf\n$",
+      "$ pdftotext 1995-watson.pdf > 1995-watson.txt\n$ rg 'The Commentz-Walter algorithm' 1995-watson.txt\n316:The Commentz-Walter algorithms : : : : : : : : : : : : : : :\n7165:4.4 The Commentz-Walter algorithms\n10062:in input string S , we obtain the Boyer-Moore algorithm. The Commentz-Walter algorithm\n17218:The Commentz-Walter algorithm (and its variants) displayed more interesting behaviour,\n17249:Aho-Corasick algorithms are used extensively. The Commentz-Walter algorithms are used\n17297: The Commentz-Walter algorithms (CW). In all versions of the CW algorithms, a common program skeleton is used with di erent shift functions. The CW algorithms are",
+      "$ cat preprocess\n#!/bin/sh\n\nexec pdftotext - -",
+      "$ rg --pre ./preprocess 'The Commentz-Walter algorithm' 1995-watson.pdf\n316:The Commentz-Walter algorithms : : : : : : : : : : : : : : :\n7165:4.4 The Commentz-Walter algorithms\n10062:in input string S , we obtain the Boyer-Moore algorithm. The Commentz-Walter algorithm\n17218:The Commentz-Walter algorithm (and its variants) displayed more interesting behaviour,\n17249:Aho-Corasick algorithms are used extensively. The Commentz-Walter algorithms are used\n17297: The Commentz-Walter algorithms (CW). In all versions of the CW algorithms, a common program skeleton is used with di erent shift functions. The CW algorithms are",
+      "$ time rg --pre ./preprocess 'The Commentz-Walter algorithm' 1995-watson.pdf -c\n6\n\nreal    0.697\nuser    0.684\nsys     0.007\nmaxmem  16 MB\nfaults  0\n\n$ time pdfgrep 'The Commentz-Walter algorithm' 1995-watson.pdf -c\n6\n\nreal    1.336\nuser    1.310\nsys     0.023\nmaxmem  16 MB\nfaults  0"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "A more robust preprocessor",
+    "text_blocks": [
+      "One of the problems with the aforementioned preprocessor is that it will fail\nif you try to search a file that isn't a PDF:",
+      "To fix this, we can make our preprocessor script a bit more robust by only\nrunning pdftotext when we think the input is a non-empty PDF:",
+      "We can even extend our preprocessor to search other kinds of files. Sometimes\nwe don't always know the file type from the file name, so we can use the file\nutility to \"sniff\" the type of the file based on its contents:"
+    ],
+    "code_blocks": [
+      "$ echo foo > not-a-pdf\n$ rg --pre ./preprocess 'The Commentz-Walter algorithm' not-a-pdf\nnot-a-pdf: preprocessor command failed: '\"./preprocess\" \"not-a-pdf\"':\n-------------------------------------------------------------------------------\nSyntax Warning: May not be a PDF file (continuing anyway)\nSyntax Error: Couldn't find trailer dictionary\nSyntax Error: Couldn't find trailer dictionary\nSyntax Error: Couldn't read xref table",
+      "$ cat preprocessor\n#!/bin/sh\n\ncase \"$1\" in\n*.pdf)\n  # The -s flag ensures that the file is non-empty.\n  if [ -s \"$1\" ]; then\n    exec pdftotext - -\n  else\n    exec cat\n  fi\n  ;;\n*)\n  exec cat\n  ;;\nesac",
+      "$ cat processor\n#!/bin/sh\n\ncase \"$1\" in\n*.pdf)\n  # The -s flag ensures that the file is non-empty.\n  if [ -s \"$1\" ]; then\n    exec pdftotext - -\n  else\n    exec cat\n  fi\n  ;;\n*)\n  case $(file \"$1\") in\n  *Zstandard*)\n    exec pzstd -cdq\n    ;;\n  *)\n    exec cat\n    ;;\n  esac\n  ;;\nesac"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Reducing preprocessor overhead",
+    "text_blocks": [
+      "There is one more problem with the above approach: it requires running a\npreprocessor for every single file that ripgrep searches. If every file needs\na preprocessor, then this is OK. But if most don't, then this can substantially\nslow down searches because of the overhead of launching new processors. You\ncan avoid this by telling ripgrep to only invoke the preprocessor when the file\npath matches a glob. For example, consider the performance difference even when\nsearching a repository as small as ripgrep's:"
+    ],
+    "code_blocks": [
+      "$ time rg --pre pre-rg 'fn is_empty' -c\ncrates/globset/src/lib.rs:1\ncrates/matcher/src/lib.rs:2\ncrates/ignore/src/overrides.rs:1\ncrates/ignore/src/gitignore.rs:1\ncrates/ignore/src/types.rs:1\n\nreal    0.138\nuser    0.485\nsys     0.209\nmaxmem  7 MB\nfaults  0\n\n$ time rg --pre pre-rg --pre-glob '*.pdf' 'fn is_empty' -c\ncrates/globset/src/lib.rs:1\ncrates/ignore/src/types.rs:1\ncrates/ignore/src/gitignore.rs:1\ncrates/ignore/src/overrides.rs:1\ncrates/matcher/src/lib.rs:2\n\nreal    0.008\nuser    0.010\nsys     0.002\nmaxmem  7 MB\nfaults  0"
+    ]
+  },
+  {
+    "file_path": "ripgrep/GUIDE.md",
+    "header": "Common options",
+    "text_blocks": [
+      "ripgrep has a lot of flags. Too many to keep in your head at once. This section\nis intended to give you a sampling of some of the most important and frequently\nused options that will likely impact how you use ripgrep on a regular basis.",
+      "-h: Show ripgrep's condensed help output.--help: Show ripgrep's longer form help output. (Nearly what you'd find in\nripgrep's man page, so pipe it into a pager!)-i/--ignore-case: When searching for a pattern, ignore case differences.\nThat is rg -i fast matches fast, fASt, FAST, etc.-S/--smart-case: This is similar to --ignore-case, but disables itself\nif the pattern contains any uppercase letters. Usually this flag is put into\nalias or a config file.-F/--fixed-strings: Disable regular expression matching and treat the pattern\nas a literal string.-w/--word-regexp: Require that all matches of the pattern be surrounded\nby word boundaries. That is, given pattern, the --word-regexp flag will\ncause ripgrep to behave as if pattern were actually \\b(?:pattern)\\b.-c/--count: Report a count of total matched lines.--files: Print the files that ripgrep would search, but don't actually\nsearch them.-a/--text: Search binary files as if they were plain text.-U/--multiline: Permit matches to span multiple lines.-z/--search-zip: Search compressed files (gzip, bzip2, lzma, xz, lz4,\nbrotli, zstd). This is disabled by default.-C/--context: Show the lines surrounding a match.--sort path: Force ripgrep to sort its output by file name. (This disables\nparallelism, so it might be slower.)-L/--follow: Follow symbolic links while recursively searching.-M/--max-columns: Limit the length of lines printed by ripgrep.--debug: Shows ripgrep's debug output. This is useful for understanding\nwhy a particular file might be ignored from search, or what kinds of\nconfiguration ripgrep is loading from the environment."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/.github/ISSUE_TEMPLATE/feature_request.md",
+    "header": "name: Feature request\nabout: Suggest a new feature for ripgrep\ntitle: ''\nlabels: ''\nassignees: ''",
+    "text_blocks": [],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/.github/ISSUE_TEMPLATE/feature_request.md",
+    "header": "Describe your feature request",
+    "text_blocks": [
+      "Please describe the behavior you want and the motivation. Please also provide\nexamples of how ripgrep would be used if your feature request were added.",
+      "If you're not sure what to write here, then try imagining what the ideal\ndocumentation of your new feature would look like in ripgrep's man page. Then\ntry to write it.",
+      "If you're requesting the addition or change of default file types, please open\na PR. We can discuss it there if necessary."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/RELEASE-CHECKLIST.md",
+    "header": "Release Checklist",
+    "text_blocks": [
+      "Ensure local master is up to date with respect to origin/master.Run cargo update and review dependency updates. Commit updated\nCargo.lock.Run cargo outdated and review semver incompatible updates. Unless there is\na strong motivation otherwise, review and update every dependency. Also\nrun --aggressive, but don't update to crates that are still in beta.Update date in crates/core/flags/doc/template.rg.1.Update the CHANGELOG as appropriate.Review changes for every crate in crates since the last ripgrep release.\nIf the set of changes is non-empty, issue a new release for that crate. Check\ncrates in the following order. After updating a crate, ensure minimal\nversions are updated as appropriate in dependents. If an update is required,\nrun cargo-up --no-push crates/{CRATE}/Cargo.toml.crates/globsetcrates/ignorecrates/clicrates/matchercrates/regexcrates/pcre2crates/searchercrates/printercrates/grep (bump minimal versions as necessary)crates/core (do not bump version, but update dependencies as needed)Edit the Cargo.toml to set the new ripgrep version. Run\ncargo update -p ripgrep so that the Cargo.lock is updated. Commit the\nchanges and create a new signed tag. Alternatively, use\ncargo-up --no-push --no-release Cargo.toml {VERSION} to automate this.Run cargo package and ensure it succeeds.Push changes to GitHub, NOT including the tag. (But do not publish a new\nversion of ripgrep to crates.io yet.)Once CI for master finishes successfully, push the version tag. (Trying to\ndo this in one step seems to result in GitHub Actions not seeing the tag\npush and thus not running the release workflow.)Wait for CI to finish creating the release. If the release build fails, then\ndelete the tag from GitHub, make fixes, re-tag, delete the release and push.Copy the relevant section of the CHANGELOG to the tagged release notes.\nInclude this blurb describing what ripgrep is:In case you haven't heard of it before, ripgrep is a line-oriented search\ntool that recursively searches the current directory for a regex pattern.\nBy default, ripgrep will respect gitignore rules and automatically skip\nhidden files/directories and binary files.Run cargo publish.Run ci/sha256-releases {VERSION} >> pkg/brew/ripgrep-bin.rb. Then edit\npkg/brew/ripgrep-bin.rb to update the version number and sha256 hashes.\nRemove extraneous stuff added by ci/sha256-releases. Commit changes.Add TBD section to the top of the CHANGELOG:",
+      "Note that cargo-up can be found in BurntSushi's dotfiles."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/fuzz/README.md",
+    "header": "Fuzz Testing",
+    "text_blocks": [],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/fuzz/README.md",
+    "header": "Introduction",
+    "text_blocks": [
+      "Fuzz testing produces pseudo-random / arbitrary data that is used to find\nstability issues within a code base. While Rust provides a strong type system,\nthis does not guarantee that an object will convert properly from one struct\nto another. It is the responsibility of the developer to ensure that a struct\nis converted properly. Fuzz testing will generate input within the domain of\neach property. This arbitrary data can then be used to convert from ObjectA\nto ObjectB and then back. This type of testing will help catch bugs that the\ntype system is not able to see."
+    ],
+    "code_blocks": []
+  },
+  {
+    "file_path": "ripgrep/fuzz/README.md",
+    "header": "Installation",
+    "text_blocks": [
+      "This crate relies on the cargo-fuzz component. To install this component,\nrun the following from the fuzz directory:"
+    ],
+    "code_blocks": [
+      "cargo install cargo-fuzz"
+    ]
+  },
+  {
+    "file_path": "ripgrep/fuzz/README.md",
+    "header": "Listing Targets",
+    "text_blocks": [
+      "Once installed, fuzz targets can be listed by running the following command:",
+      "This command will print out a list of all targets that can be tested."
+    ],
+    "code_blocks": [
+      "cargo fuzz list"
+    ]
+  },
+  {
+    "file_path": "ripgrep/fuzz/README.md",
+    "header": "Running Fuzz Tests",
+    "text_blocks": [
+      "To run a fuzz test, the target must be specified:",
+      "Note that the above will run the fuzz test indefinitely. Use the\n-max_total_time=<num seconds> flag to specify how many seconds the test\nshould run for:",
+      "The above command will run the fuzz test for five seconds. If the test\ncompletes without error it will show how many tests were run successfully.\nThe test will abort and return a non-zero error code if it is able to produce\nan error. The arbitrary input will be displayed in the event of a failure."
+    ],
+    "code_blocks": [
+      "cargo fuzz run <target>",
+      "cargo fuzz run <target> -- -max_total_time=5"
+    ]
+  },
+  {
+    "file_path": "ripgrep/pkg/windows/README.md",
+    "header": "(preamble)",
+    "text_blocks": [
+      "This directory contains a Windows manifest for various Windows-specific\nsettings.",
+      "The main thing we enable here is longPathAware, which permits paths of the\nform C:\\ to be longer than 260 characters.",
+      "The approach taken here was modeled off of a similar change for rustc.\nIn particular, this manifest gets linked into the final binary. Those linker\narguments are applied in build.rs.",
+      "This currently only applies to MSVC builds. If there's an easy way to make this\napply to GNU builds as well, then patches are welcome."
+    ],
+    "code_blocks": []
+  }
+]
