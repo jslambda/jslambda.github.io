@@ -176,7 +176,18 @@
     const $searchButton = document.getElementById('searchBtn');
     const $resultsList = document.getElementById('resultsList');
 
-
+    function getCategoryFromFilePath(filePath) {
+      if (!filePath) {
+        return "?";
+      }
+      if (filePath.includes('common')) {
+        return 'common';
+      }
+      if (filePath.includes('linux')) {
+        return 'linux';
+      }
+      return filePath;
+    }
     // Function to perform the search and display results
     async function performSearch() {
       const query = $searchInput.value.trim();
@@ -208,7 +219,9 @@
           return `
           <li class="result-item">
             <header class="result-header">
-              <h3 class="result-title">${result.header} <span class="result-category">[${result.file_path}]</span></h3>
+              <h3 class="result-title">${result.header}
+              <span class="result-category">[${getCategoryFromFilePath(result.file_path)}]</span>
+              </h3>
             </header>
             <section class="result-snippet">
               <p>${result.text_blocks.join(' ').replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
