@@ -208,10 +208,10 @@
           return `
           <li class="result-item">
             <header class="result-header">
-              <h3 class="result-title">${result.header} <span class="result-category">[${result.category}]</span></h3>
+              <h3 class="result-title">${result.header} <span class="result-category">[${result.file_path}]</span></h3>
             </header>
             <section class="result-snippet">
-              <p>${result.text_block.replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
+              <p>${result.text_blocks.join(' ').replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
             </section>
             ${codeLines ? `<section class="result-code">
               <h4>Code Snippets:</h4>
