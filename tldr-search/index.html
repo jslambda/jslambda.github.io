@@ -116,6 +116,11 @@
   <script>
     "use strict";
 
+    const FIELD_HEADER = 'header';
+    const FIELD_TEXT_BLOCK = 'text_block';
+    const FIELD_CODE_BLOCKS = 'code_blocks';
+    const FIELD_CATEGORY = 'category';
+
     // Grab references to the input, button, and results container
     const $searchInput = document.querySelector('.Search input');
     const $searchButton = document.getElementById('searchBtn');
@@ -123,8 +128,8 @@
 
     // Initialize MiniSearch
     const miniSearch = new MiniSearch({
-      fields: ['header', 'text_block'], // fields to index for full-text search
-      storeFields: ['header', 'text_block', 'code_blocks', 'category'] // fields to return with search results
+      fields: [FIELD_HEADER, FIELD_TEXT_BLOCK], // fields to index for full-text search
+      storeFields: [FIELD_HEADER, FIELD_TEXT_BLOCK, FIELD_CODE_BLOCKS, FIELD_CATEGORY] // fields to return with search results
     });
 
     // Fetch data from JSON and index it
@@ -158,16 +163,16 @@
       // Build HTML to display results
       if (results.length > 0) {
         const html = results.map(result => {
-          const codeLines = result.code_blocks.filter(line => line.length > 10)
+          const codeLines = result[FIELD_CODE_BLOCKS].filter(line => line.length > 10)
             .map(line => `<li class="code-line">${line}</li>`)
             .join('');
           return `
           <li class="result-item">
             <header class="result-header">
-              <h3 class="result-title">${result.header} <span class="result-category">[${result.category}]</span></h3>
+              <h3 class="result-title">${result[FIELD_HEADER]} <span class="result-category">[${result[FIELD_CATEGORY]}]</span></h3>
             </header>
             <section class="result-snippet">
-              <p>${result.text_block.replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
+              <p>${result[FIELD_TEXT_BLOCK].replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
             </section>
             ${codeLines ? `<section class="result-code">
               <h4>Code Snippets:</h4>
