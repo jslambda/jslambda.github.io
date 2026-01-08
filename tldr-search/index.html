@@ -154,6 +154,18 @@
         console.error('Error fetching data.json:', error);
       });
 
+    function getCategoryFromFilePath(filePath) {
+      if (!filePath) {
+        return "?";
+      }
+      if (filePath.includes('common')) {
+        return 'common';
+      }
+      if (filePath.includes('linux')) {
+        return 'linux';
+      }
+      return filePath;
+    }
     // Function to perform the search and display results
     function performSearch() {
       const query = $searchInput.value.trim();
@@ -176,7 +188,7 @@
           return `
           <li class="result-item">
             <header class="result-header">
-              <h3 class="result-title">${result[FIELD_HEADER]} <span class="result-category">[${result[FIELD_CATEGORY]}]</span></h3>
+              <h3 class="result-title">${result[FIELD_HEADER]} <span class="result-category">[${getCategoryFromFilePath(result[FIELD_CATEGORY])}]</span></h3>
             </header>
             <section class="result-snippet">
               <p>${result[FIELD_TEXT_BLOCK].replaceAll(NEW_LINE_SIGN, '<br />').substring(0, 200)}...</p>
