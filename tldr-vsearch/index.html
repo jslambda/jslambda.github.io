@@ -216,6 +216,7 @@
           const codeLines = result.code_blocks.filter(line => line.length > 10)
             .map(line => `<li class="code-line">${line}</li>`)
             .join('');
+          // Possible improvements: link to official tldr, inline code snippet in the text
           return `
           <li class="result-item">
             <header class="result-header">
@@ -224,7 +225,7 @@
               </h3>
             </header>
             <section class="result-snippet">
-              <p>${result.text_blocks.join(' ').replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
+              <p>${result.text_blocks.join('<br />').substring(0, 200)}...</p>
             </section>
             ${codeLines ? `<section class="result-code">
               <h4>Code Snippets:</h4>
