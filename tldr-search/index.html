@@ -117,9 +117,10 @@
     "use strict";
 
     const FIELD_HEADER = 'header';
-    const FIELD_TEXT_BLOCK = 'text_block';
+    const FIELD_TEXT_BLOCK = 'text_blocks';
     const FIELD_CODE_BLOCKS = 'code_blocks';
-    const FIELD_CATEGORY = 'category';
+    const FIELD_CATEGORY = "file_path";
+    const NEW_LINE_SIGN = " NEWLINE ";
 
     // Grab references to the input, button, and results container
     const $searchInput = document.querySelector('.Search input');
@@ -129,7 +130,13 @@
     // Initialize MiniSearch
     const miniSearch = new MiniSearch({
       fields: [FIELD_HEADER, FIELD_TEXT_BLOCK], // fields to index for full-text search
-      storeFields: [FIELD_HEADER, FIELD_TEXT_BLOCK, FIELD_CODE_BLOCKS, FIELD_CATEGORY] // fields to return with search results
+      storeFields: [FIELD_HEADER, FIELD_TEXT_BLOCK, FIELD_CODE_BLOCKS, FIELD_CATEGORY], // fields to return with search results
+      extractField: (document, fieldName) => {
+            const value = document[fieldName];
+            return Array.isArray(value)
+                ? value.join(NEW_LINE_SIGN)
+                : value;
+        },
     });
 
     // Fetch data from JSON and index it
@@ -163,7 +170,7 @@
       // Build HTML to display results
       if (results.length > 0) {
         const html = results.map(result => {
-          const codeLines = result[FIELD_CODE_BLOCKS].filter(line => line.length > 10)
+          const codeLines = result[FIELD_CODE_BLOCKS].split(NEW_LINE_SIGN).filter(line => line.length > 10)
             .map(line => `<li class="code-line">${line}</li>`)
             .join('');
           return `
@@ -172,7 +179,7 @@
               <h3 class="result-title">${result[FIELD_HEADER]} <span class="result-category">[${result[FIELD_CATEGORY]}]</span></h3>
             </header>
             <section class="result-snippet">
-              <p>${result[FIELD_TEXT_BLOCK].replaceAll('NEWPARAGRAPH', '<br />').substring(0, 128)}...</p>
+              <p>${result[FIELD_TEXT_BLOCK].replaceAll(NEW_LINE_SIGN, '<br />').substring(0, 200)}...</p>
             </section>
             ${codeLines ? `<section class="result-code">
               <h4>Code Snippets:</h4>
