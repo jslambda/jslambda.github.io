@@ -41,6 +41,14 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
+    .spinner {
+      display: none;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #666;
+      font-style: italic;
+    }
+
     .result-item {
       border-bottom: 1px solid #ddd;
       padding: 10px 0;
@@ -108,6 +116,7 @@
     </div>
 
     <div class="results">
+      <div id="searchSpinner" class="spinner" aria-live="polite" aria-busy="true">Searching…</div>
       <ul id="resultsList"></ul>
     </div>
   </main>
@@ -175,6 +184,7 @@
     const $searchInput = document.querySelector('.Search input');
     const $searchButton = document.getElementById('searchBtn');
     const $resultsList = document.getElementById('resultsList');
+    const $spinner = document.getElementById('searchSpinner');
 
     function getCategoryFromFilePath(filePath) {
       if (!filePath) {
@@ -190,34 +200,38 @@
     }
     // Function to perform the search and display results
     async function performSearch() {
+      $spinner.style.display = 'block';
+      $searchInput.disabled = true;
+      $searchButton.disabled = true;
       const query = $searchInput.value.trim();
 
       // If input is empty, clear the results
-      if (!query) {
-        $resultsList.innerHTML = '';
-        return;
-      }
+      try {
+        if (!query) {
+          $resultsList.innerHTML = '';
+          return;
+        }
 
-      // Get search results
-      // const results = miniSearch.search(query);
-      const res = index.textSearch(query, 'header');
-      let results;
-      if (res) {
-        results = [res];
-      } else {
-        const queryVector = await embedText(query);
-        results = index.search(queryVector, 100);
+        // Get search results
+        // const results = miniSearch.search(query);
+        const res = index.textSearch(query, 'header');
+        let results;
+        if (res) {
+          results = [res];
+        } else {
+          const queryVector = await embedText(query);
+          results = index.search(queryVector, 100);
 
-      }
+        }
 
-      // Build HTML to display results
-      if (results.length > 0) {
-        const html = results.map(result => {
-          const codeLines = result.code_blocks.filter(line => line.length > 10)
-            .map(line => `<li class="code-line">${line}</li>`)
-            .join('');
-          // Possible improvements: link to official tldr, inline code snippet in the text
-          return `
+        // Build HTML to display results
+        if (results.length > 0) {
+          const html = results.map(result => {
+            const codeLines = result.code_blocks.filter(line => line.length > 10)
+              .map(line => `<li class="code-line">${line}</li>`)
+              .join('');
+            // Possible improvements: link to official tldr, inline code snippet in the text
+            return `
           <li class="result-item">
             <header class="result-header">
               <h3 class="result-title">${result.header}
@@ -233,11 +247,16 @@
             </section>` : ''}
           </li>
         `;
-        }).join('');
-        $resultsList.innerHTML = html;
-      } else {
-        // If no results found
-        $resultsList.innerHTML = '<li class="no-results">No results found. Please try a different search query.</li>';
+          }).join('');
+          $resultsList.innerHTML = html;
+        } else {
+          // If no results found
+          $resultsList.innerHTML = '<li class="no-results">No results found. Please try a different search query.</li>';
+        }
+      } finally {
+        $spinner.style.display = 'none';
+        $searchInput.disabled = false;
+        $searchButton.disabled = false;
       }
     }
 
