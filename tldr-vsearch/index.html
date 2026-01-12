@@ -204,6 +204,7 @@
       $searchInput.disabled = true;
       $searchButton.disabled = true;
       const query = $searchInput.value.trim();
+      const queryStart = performance.now();
 
       // If input is empty, clear the results
       try {
@@ -254,6 +255,10 @@
           $resultsList.innerHTML = '<li class="no-results">No results found. Please try a different search query.</li>';
         }
       } finally {
+        if (query) {
+          const queryDuration = performance.now() - queryStart;
+          console.log(`Query "${query}" completed in ${queryDuration.toFixed(2)}ms`);
+        }
         $spinner.style.display = 'none';
         $searchInput.disabled = false;
         $searchButton.disabled = false;
