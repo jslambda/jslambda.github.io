@@ -232,12 +232,13 @@
               .map(line => `<li class="code-line">${line}</li>`)
               .join('');
             const category = getCategoryFromFilePath(result.file_path);
+            const linkHeader = result?.header?.trim()?.replace(/\s+/g, "-");
             return `
           <li class="result-item">
             <header class="result-header">
             <h3 class="result-title">
               ${category
-                ? `<a href="https://tldr.inbrowser.app/pages/${category}/${result.header}" target="_blank" rel="noopener noreferrer">${result.header}</a>`
+                ? `<a href="https://tldr.inbrowser.app/pages/${category}/${linkHeader}" target="_blank" rel="noopener noreferrer">${result.header}</a>`
                 : result.header
               }
               <span class="result-category">[${category || "?"}]</span>
