@@ -231,12 +231,12 @@
             const codeLines = result.code_blocks.filter(line => line.length > 10)
               .map(line => `<li class="code-line">${line}</li>`)
               .join('');
-            // Possible improvements: link to official tldr, inline code snippet in the text
+            const category = getCategoryFromFilePath(result.file_path);
             return `
           <li class="result-item">
             <header class="result-header">
               <h3 class="result-title">${result.header}
-              <span class="result-category">[${getCategoryFromFilePath(result.file_path)}]</span>
+              <span class="result-category">[${category}]</span>
               </h3>
             </header>
             <section class="result-snippet">
