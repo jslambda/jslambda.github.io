@@ -1,0 +1,5 @@
+https://jslambda.github.io/
+https://jslambda.github.io/tldr-vsearch/
+https://jslambda.github.io/articles/semantic-tldr.html
+https://jslambda.github.io/tree-sitter-search/
+https://jslambda.github.io/ripgrep-search/
